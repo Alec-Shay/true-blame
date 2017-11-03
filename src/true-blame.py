@@ -24,7 +24,7 @@ if (len(sys.argv) < 3):
     line_number = input()
     print("Substring (enter nothing to trace exact line): ", flush=True)
     substring = input()
-else :
+else:
     file_name = sys.argv[1]
     line_number = sys.argv[2]
 
@@ -34,11 +34,6 @@ else :
         if x == "-s" and len(sys.argv) > (i + 1):
                 substring = sys.argv[i + 1]
                 break
-
-print("<substring>" + substring + "</substring>")
-
-if substring:
-        print("had a substring")
 
 git_blame = run_blame(file_name, line_number)
 blame_hash = git_blame.split()[0]
