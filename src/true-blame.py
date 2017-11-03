@@ -17,26 +17,39 @@ def run_blame(fn, ln):
     git_blame = (process.communicate()[0]).decode("UTF-8")
     return git_blame
 
+def get_file_diffs(git_log):
+	file_diffs = { }
+	split_log = git_log.split("diff --git a/")
+	split_log.pop(0)
+
+	for log in split_log:
+		fileName = log.split()[0]
+		fileName = fileName.split("/")[-1]
+
+		fileDiff = log.split("@@")
+		fileDiff = "@@" + fileDiff[1] + "@@" + fileDiff[2]
+
+		file_diffs[fileName] = fileDiff
+
+	return file_diffs
+
 if (len(sys.argv) < 3):
     print("Filename: ", end="", flush=True)
     file_name = input()
+    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
     print("Starting line: ", end="", flush=True)
     line_number = input()
-    print("Substring (enter nothing to trace exact line): ", flush=True)
-    substring = input()
-else:
+    line_number = "98"
+else :
     file_name = sys.argv[1]
     line_number = sys.argv[2]
-
-    for i, x in enumerate(sys.argv):
-        print(sys.argv[i])
-            
-        if x == "-s" and len(sys.argv) > (i + 1):
-                substring = sys.argv[i + 1]
-                break
 
 git_blame = run_blame(file_name, line_number)
 blame_hash = git_blame.split()[0]
 
 git_log = run_log(blame_hash)
-print(git_log)
+file_diffs = get_file_diffs(git_log)
+
+for fileDiff in file_diffs:
+	print(fileDiff)
+	print(file_diffs.get(fileDiff))
