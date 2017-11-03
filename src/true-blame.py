@@ -4,10 +4,17 @@ import sys
 
 dir_path = os.getcwd()
 
+def run_blame(fn, ln):
+    line_range = ln + "," + ln
+
+    process = subprocess.Popen(["git", "blame", fn, "-L", line_range], stdout=subprocess.PIPE, cwd=dir_path)
+
+    return str(process.communicate()[0])
+
 if (len(sys.argv) < 3):
-    print("Filename: ", end="", flush=True)
+    print("Filename: ", flush=True)
     file_name = input()
-    print("Line: ", end="", flush=True)
+    print("Starting line: ", flush=True)
     line_number = input()
 else :
     file_name = sys.argv[1]
@@ -15,6 +22,4 @@ else :
 
 print(dir_path)
 
-process = subprocess.Popen(["git", "blame", file_name, "-L", line_number + "," + line_number, "-p"], stdout=subprocess.PIPE, cwd=dir_path)
-
-print(str(process.communicate()[0]))
+print(run_blame(file_name, line_number))
