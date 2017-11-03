@@ -36,6 +36,9 @@ def get_file_diffs(git_log):
 		fileName = fileName.split("/")[-1]
 
 		fileDiff = log.split("@@")
+		if len(fileDiff) < 2:
+			print("ERROR: Invalid Diff Target")
+			break
 		fileDiff = "@@" + fileDiff[1] + "@@" + fileDiff[2]
 
 		file_diffs[fileName] = fileDiff
@@ -65,7 +68,11 @@ else:
                 break
 
 git_blame = run_blame(file_name, line_number)
-blame_hash = git_blame.split()[0]
+try:
+	blame_hash = git_blame.split()[0]
+except:
+	print("ERROR: Invalid Blame Target")
+	sys.exit(0)
 
 git_diff_result = run_diff(blame_hash)
 file_diffs = get_file_diffs(git_diff_result)
