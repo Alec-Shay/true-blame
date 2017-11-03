@@ -4,11 +4,20 @@ import sys
 
 dir_path = os.getcwd()
 
-def run_log(blame_hash):
-	process = subprocess.Popen(["git","log", blame_hash, "-1", "-p", "--full-diff"], stdout=subprocess.PIPE)
-	git_log = (process.communicate()[0]).decode("UTF-8")
+def get_parent_commit(commit_hash):
+        hash_string = commit_hash + "^"
+        
+        process = subprocess.Popen(["git", "rev-parse", hash_string], stdout=subprocess.PIPE, cwd=dir_path)
 
-	return git_log
+        return (process.communicate()[0]).decode("UTF-8").replace("\n","")
+
+def run_diff(blame_hash):
+        parent_hash = get_parent_commit(blame_hash)
+
+        process = subprocess.Popen(["git", "diff", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
+        gitDiff = (process.communicate()[0]).decode("UTF-8")
+
+        return gitDiff
 
 def run_blame(fn, ln):
     line_range = ln + "," + ln
@@ -36,7 +45,7 @@ def get_file_diffs(git_log):
 if (len(sys.argv) < 3):
     print("Filename: ", end="", flush=True)
     file_name = input()
-    print("Starting line: ", end="", flush=True)
+    print("Line number: ", end="", flush=True)
     line_number = input()
     print("Substring (enter nothing to trace exact line): ", flush=True)
     substring = input()
@@ -58,8 +67,8 @@ else:
 git_blame = run_blame(file_name, line_number)
 blame_hash = git_blame.split()[0]
 
-git_log = run_log(blame_hash)
-file_diffs = get_file_diffs(git_log)
+git_diff_result = run_diff(blame_hash)
+file_diffs = get_file_diffs(git_diff_result)
 
 for fileDiff in file_diffs:
 	print(fileDiff)
