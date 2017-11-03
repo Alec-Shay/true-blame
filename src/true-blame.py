@@ -4,6 +4,17 @@ import sys
 
 dir_path = os.getcwd()
 
+def get_line(file_name, line_number):
+        line = ""
+        file = open(dir_path + "/" + file_name)
+        
+        for i, counted_line in enumerate(file):
+                if i == (int(line_number) - 1):
+                        line = counted_line
+                        break
+        file.close()
+        return line
+
 def get_parent_commit(commit_hash):
         hash_string = commit_hash + "^"
         
@@ -57,6 +68,9 @@ def recursive_blame(file_name, line_number, substring, head):
 		git_diff_result = run_diff(blame_hash)
 		file_diffs = get_file_diffs(git_diff_result)
 
+		# for x in file_diffs:
+		# 	print(file_diffs.get(x))
+
 		if "/" in file_name:
 			file_name2 = file_name.split("/")[-1]
 
@@ -65,9 +79,10 @@ def recursive_blame(file_name, line_number, substring, head):
 		for line in content.split("\n"):
 			if line:
 				if line[0] is "-":
-					if line.find(substring) < 0:
-						return blame_hash
-					head = blame_hash + "^"
+					if line.find(substring) > -1:
+						head = blame_hash + "^"
+						continue
+		return blame_hash
 
 def main():
 	if (len(sys.argv) < 3):
@@ -79,9 +94,13 @@ def main():
 	    substring = input()
 
 	    # FOR TESTING
-	    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-	    line_number = "98"
-	    substring = "\"allowEmptyOptions=true\""
+	    # file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
+	    # line_number = "98"
+	    # substring = "\"allowEmptyOptions=true\""
+
+	    file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
+	    line_number = "209"
+	    substring = "sb.append(StringPool.SPACE)"
 	else:
 	    file_name = sys.argv[1]
 	    line_number = sys.argv[2]
@@ -93,6 +112,7 @@ def main():
 	                substring = sys.argv[i + 1]
 	                break
 	head = "HEAD"
+	print(get_line(file_name, line_number))
 
 	blame_hash = recursive_blame(file_name, line_number, substring, head)
 	print(blame_hash)
