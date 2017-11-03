@@ -5,9 +5,9 @@ import sys
 dir_path = os.getcwd()
 
 if (len(sys.argv) < 3):
-    print("Filename: ", flush=True)
+    print("Filename: ", end="", flush=True)
     file_name = input()
-    print("Starting line: ", flush=True)
+    print("Line: ", end="", flush=True)
     line_number = input()
 else :
     file_name = sys.argv[1]
