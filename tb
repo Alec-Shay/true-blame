@@ -1,0 +1,7 @@
+#!/bin/bash
+
+tb() {
+		python "$(dirname "${BASH_SOURCE[0]}")/src/true-blame.py" || py "$(dirname "${BASH_SOURCE[0]}")/src/true-blame.py"
+}
+
+tb $@
