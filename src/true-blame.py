@@ -19,10 +19,10 @@ def run_diff(blame_hash):
 
         return gitDiff
 
-def run_blame(fn, ln):
+def run_blame(fn, ln, head):
     line_range = ln + "," + ln
 
-    process = subprocess.Popen(["git", "blame", fn, "-L", line_range, "-p"], stdout=subprocess.PIPE, cwd=dir_path)
+    process = subprocess.Popen(["git", "blame", fn, "-L", line_range, head, "-p"], stdout=subprocess.PIPE, cwd=dir_path)
     git_blame = (process.communicate()[0]).decode("UTF-8")
     return git_blame
 
@@ -45,38 +45,56 @@ def get_file_diffs(git_log):
 
 	return file_diffs
 
-if (len(sys.argv) < 3):
-    print("Filename: ", end="", flush=True)
-    file_name = input()
-    print("Line number: ", end="", flush=True)
-    line_number = input()
-    print("Substring (enter nothing to trace exact line): ", flush=True)
-    substring = input()
+def recursive_blame(file_name, line_number, substring, head):
+	while True:
+		git_blame = run_blame(file_name, line_number, head)
+		try:
+			blame_hash = git_blame.split()[0]
+		except:
+			print("ERROR: Invalid Blame Target")
+			sys.exit(0)
 
-    # FOR TESTING
-    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-    line_number = "98"
-else:
-    file_name = sys.argv[1]
-    line_number = sys.argv[2]
+		git_diff_result = run_diff(blame_hash)
+		file_diffs = get_file_diffs(git_diff_result)
 
-    for i, x in enumerate(sys.argv):
-        print(sys.argv[i])
-            
-        if x == "-s" and len(sys.argv) > (i + 1):
-                substring = sys.argv[i + 1]
-                break
+		if "/" in file_name:
+			file_name2 = file_name.split("/")[-1]
 
-git_blame = run_blame(file_name, line_number)
-try:
-	blame_hash = git_blame.split()[0]
-except:
-	print("ERROR: Invalid Blame Target")
-	sys.exit(0)
+		content = file_diffs.get(file_name2)
 
-git_diff_result = run_diff(blame_hash)
-file_diffs = get_file_diffs(git_diff_result)
+		for line in content.split("\n"):
+			if line:
+				if line[0] is "-":
+					if line.find(substring) < 0:
+						return blame_hash
+					head = blame_hash + "^"
 
-for fileDiff in file_diffs:
-	print(fileDiff)
-	print(file_diffs.get(fileDiff))
+def main():
+	if (len(sys.argv) < 3):
+	    print("Filename: ", end="", flush=True)
+	    file_name = input()
+	    print("Line number: ", end="", flush=True)
+	    line_number = input()
+	    print("Substring (enter nothing to trace exact line): ", flush=True)
+	    substring = input()
+
+	    # FOR TESTING
+	    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
+	    line_number = "98"
+	    substring = "\"allowEmptyOptions=true\""
+	else:
+	    file_name = sys.argv[1]
+	    line_number = sys.argv[2]
+
+	    for i, x in enumerate(sys.argv):
+	        print(sys.argv[i])
+	            
+	        if x == "-s" and len(sys.argv) > (i + 1):
+	                substring = sys.argv[i + 1]
+	                break
+	head = "HEAD"
+
+	blame_hash = recursive_blame(file_name, line_number, substring, head)
+	print(blame_hash)
+
+main()
