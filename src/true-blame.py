@@ -36,13 +36,24 @@ def get_file_diffs(git_log):
 if (len(sys.argv) < 3):
     print("Filename: ", end="", flush=True)
     file_name = input()
-    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
     print("Starting line: ", end="", flush=True)
     line_number = input()
+    print("Substring (enter nothing to trace exact line): ", flush=True)
+    substring = input()
+
+    # FOR TESTING
+    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
     line_number = "98"
-else :
+else:
     file_name = sys.argv[1]
     line_number = sys.argv[2]
+
+    for i, x in enumerate(sys.argv):
+        print(sys.argv[i])
+            
+        if x == "-s" and len(sys.argv) > (i + 1):
+                substring = sys.argv[i + 1]
+                break
 
 git_blame = run_blame(file_name, line_number)
 blame_hash = git_blame.split()[0]
