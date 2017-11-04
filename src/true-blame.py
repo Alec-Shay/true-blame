@@ -59,8 +59,12 @@ def get_file_diffs(git_log):
 			break
 
 		for i in range(int(len(fileDiff) / 2)):
-			separate_diffs_list.append("@@" + fileDiff[i + 1] + "@@" + fileDiff[i + 2])
+			j = i*2+1
+			separate_diffs_list.append("@@" + fileDiff[j] + "@@" + fileDiff[j + 1])
 
+		if fileName == "AssetPublisherUtil.java":
+			for x in separate_diffs_list:
+				print("HERE: " + x)
 		file_diffs[fileName] = separate_diffs_list
 
 	return file_diffs
@@ -69,6 +73,8 @@ def recursive_blame(file_name, line_number, substring, head):
 	blaming = True
 
 	while blaming:
+		print("==============")
+		print("HEAD : " + head)
 		git_blame = run_blame(file_name, line_number, head)
 		try:
 			blame_hash = git_blame.split()[0]
@@ -113,8 +119,7 @@ def recursive_blame(file_name, line_number, substring, head):
 				if line:
 					if line[0] is "-":
 						if line.find(substring) > -1:
-							line_number = str(int(base_line_number) + i + 1)
-
+							line_number = str(int(base_line_number) + i)
 							head = blame_hash
 
 							# print("content: " + content)
