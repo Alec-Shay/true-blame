@@ -25,6 +25,7 @@ def get_parent_commit(commit_hash):
 def run_diff(blame_hash):
         parent_hash = get_parent_commit(blame_hash)
 
+        print("RUN_DIFF: " + "git diff " + parent_hash + " " + blame_hash + " -U0")
         process = subprocess.Popen(["git", "diff", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
         gitDiff = (process.communicate()[0]).decode("UTF-8")
 
@@ -41,14 +42,16 @@ def run_blame(fn, ln, head):
 
 def get_file_diffs(git_log):
 	file_diffs = { }
-	separate_diffs_list = [ ]
 	split_log = git_log.split("diff --git a/")
 	split_log.pop(0)
 
 	for log in split_log:
+		separate_diffs_list = [ ]
 		fileName = log.split()[0]
 		fileName = fileName.split("/")[-1]
-
+		
+		# print(fileName)
+		
 		fileDiff = log.split("@@")
 
 		if len(fileDiff) < 2:
@@ -83,8 +86,8 @@ def recursive_blame(file_name, line_number, substring, head):
 
 		content_list = file_diffs_map.get(file_name2)
 
-		for c in content_list:
-			print(c)
+		# for c in content_list:
+		# 	print(c)
 
 		for content in content_list:
 			content_lines = content.split("\n")
@@ -102,8 +105,6 @@ def recursive_blame(file_name, line_number, substring, head):
 
 					base_line_number = base_line_number.replace("-", "")
 
-					if base_line_number == "226":
-						print("token: " + token)
 					break
 
 			blaming = False
@@ -116,11 +117,10 @@ def recursive_blame(file_name, line_number, substring, head):
 
 							head = blame_hash
 
-							print("content: " + content)
-							print(type(base_line_number))
-							print("base_line_number: " + str(base_line_number))
-							print("line number: " + line_number)
-							print("head: " + head)
+							# print("content: " + content)
+							# print("base_line_number: " + str(base_line_number))
+							# print("line number: " + line_number)
+							# print("head: " + head)
 							blaming = True
 							break
 
