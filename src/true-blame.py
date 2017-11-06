@@ -45,9 +45,9 @@ def get_parent_commit(commit_hash):
 def run_diff(blame_hash):
         parent_hash = get_parent_commit(blame_hash)
 
-        print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
-        process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
+        # print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
 
+        process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
         gitDiff = process.communicate()[0].decode("UTF-8", "replace")
 
         return gitDiff
@@ -60,13 +60,13 @@ def run_blame(fn, ln, head):
 
 	line_range = str(ln) + "," + str(ln)
 
-	print("git blame -L " + line_range + " -p " + head_string + " -- " + fn)
+	# print("git blame -L " + line_range + " -p " + head_string + " -- " + fn)
 
 	process = subprocess.Popen(["git", "blame", "-L", line_range, "-p", head_string, "--", fn], stdout=subprocess.PIPE, cwd=dir_path)
 	git_blame = (process.communicate()[0]).decode("UTF-8", "replace")
 
-	for line in git_blame.splitlines():
-		print(line)
+	# for line in git_blame.splitlines():
+	# 	print(line)
 
 	return git_blame
 
@@ -78,10 +78,6 @@ def get_file_diffs(git_log):
 	for log in split_log:
 		separate_diffs_list = [ ]
 		fileName = log.split()[0]
-		#fileName = fileName.split("/")[-1]
-		
-		# print(fileName)
-		
 		fileDiff = log.split("@@")
 
 		if len(fileDiff) < 2:
@@ -89,7 +85,7 @@ def get_file_diffs(git_log):
 			continue
 
 		for i in range(int(len(fileDiff) / 2)):
-			j = i*2+1
+			j = (i*2)+1
 			separate_diffs_list.append("@@" + fileDiff[j] + "@@" + fileDiff[j + 1])
 
 		file_diffs[fileName] = separate_diffs_list
@@ -112,14 +108,7 @@ def recursive_blame(file_name, line_number, substring, head):
 		git_diff_result = run_diff(blame_hash)
 		file_diffs_map = get_file_diffs(git_diff_result)
 
-		#print("git_diff_result: " + git_diff_result)
-
 		sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
-
-		#content_list = file_diffs_map.get(file_name)
-
-		# for c in content_list:
-		# 	print(c)
 
 		blaming = False
 
@@ -155,12 +144,7 @@ def recursive_blame(file_name, line_number, substring, head):
 								#head = get_parent_commit(blame_hash)
 								head = blame_hash
 
-								# print("content: " + content)
-								# print("base_line_number: " + str(base_line_number))
-								# print("line number: " + line_number)
-								# print("head: " + head)
 								file_name = diff_file_name
-
 								blaming = True
 								break
 
@@ -186,13 +170,13 @@ def main():
 	    #line_number = "125"
 	    #substring = "\"allowEmptyOptions=true\""
 
-	    file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
-	    line_number = "209"
-	    substring = "sb.append(StringPool.SPACE)"
+	    # file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
+	    # line_number = "209"
+	    # substring = "sb.append(StringPool.SPACE)"
 
-	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-	    #line_number = "157"
-	    #substring = "rootPortletId"
+	    file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
+	    line_number = "157"
+	    substring = "rootPortletId"
 
 	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    #line_number = "21"
