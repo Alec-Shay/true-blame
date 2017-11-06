@@ -37,7 +37,7 @@ def sort_file_diffs(diffs, file_name):
 
 def get_parent_commit(commit_hash):
         hash_string = commit_hash + "^"
-        
+
         process = subprocess.Popen(["git", "rev-parse", hash_string], stdout=subprocess.PIPE, cwd=dir_path)
 
         return (process.communicate()[0]).decode("UTF-8").replace("\n","")
@@ -47,7 +47,8 @@ def run_diff(blame_hash):
 
         print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
         process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
-        gitDiff = (process.communicate()[0]).decode("UTF-8")
+
+        gitDiff = process.communicate()[0].decode("UTF-8", "replace")
 
         return gitDiff
 
@@ -62,7 +63,10 @@ def run_blame(fn, ln, head):
 	print("git blame -L " + line_range + " -p " + head_string + " -- " + fn)
 
 	process = subprocess.Popen(["git", "blame", "-L", line_range, "-p", head_string, "--", fn], stdout=subprocess.PIPE, cwd=dir_path)
-	git_blame = (process.communicate()[0]).decode("UTF-8")
+	git_blame = (process.communicate()[0]).decode("UTF-8", "replace")
+
+	for line in git_blame.splitlines():
+		print(line)
 
 	return git_blame
 
@@ -81,16 +85,13 @@ def get_file_diffs(git_log):
 		fileDiff = log.split("@@")
 
 		if len(fileDiff) < 2:
-			print("ERROR: Invalid Diff Target")
-			break
+			print("WARN: Invalid Diff Target: " + fileName.split("/")[-1])
+			continue
 
 		for i in range(int(len(fileDiff) / 2)):
 			j = i*2+1
 			separate_diffs_list.append("@@" + fileDiff[j] + "@@" + fileDiff[j + 1])
 
-		if fileName == "AssetPublisherUtil.java":
-			for x in separate_diffs_list:
-				print("HERE: " + x)
 		file_diffs[fileName] = separate_diffs_list
 
 	return file_diffs
@@ -192,6 +193,14 @@ def main():
 	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    #line_number = "157"
 	    #substring = "rootPortletId"
+
+	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
+	    #line_number = "21"
+	    #substring = "AssetEntry"
+
+	    #file_name = "portal-impl/src/com/liferay/portal/util/PortalImpl.java"
+	    #line_number = "317"
+	    #substring = "class Portal"
 	else:
 	    file_name = sys.argv[1]
 	    line_number = sys.argv[2]
