@@ -186,13 +186,13 @@ def main():
 	    #line_number = "125"
 	    #substring = "\"allowEmptyOptions=true\""
 
-	    file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
-	    line_number = "209"
-	    substring = "sb.append(StringPool.SPACE)"
+	    #file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
+	    #line_number = "209"
+	    #substring = "sb.append(StringPool.SPACE)"
 
-	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-	    #line_number = "157"
-	    #substring = "rootPortletId"
+	    file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
+	    line_number = "157"
+	    substring = "rootPortletId"
 
 	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    #line_number = "21"
@@ -211,6 +211,10 @@ def main():
 	        if x == "-s" and len(sys.argv) > (i + 1):
 	                substring = sys.argv[i + 1]
 	                break
+
+	if file_name.find("\\", -1):
+		file_name = file_name.replace("\\", "/")
+
 	head = "HEAD"
 	#print(get_line(file_name, line_number))
 
