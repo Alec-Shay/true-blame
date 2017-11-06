@@ -15,6 +15,26 @@ def get_line(file_name, line_number):
         file.close()
         return line
 
+def sort_file_diffs(diffs, file_name):
+	sorted_diffs = { }
+	sorted_diffs[file_name] = "temp"
+	simplified_file_name = file_name.split("/")[-1]
+
+	for k, v in diffs.items():
+		simplified_k = k.split("/")[-1]
+
+		if simplified_k == simplified_file_name:
+			sorted_diffs[k] = v
+
+	for k, v in diffs.items():
+		if k not in sorted_diffs:
+			sorted_diffs[k] = v
+
+	if sorted_diffs[file_name] == "temp":
+		del sorted_diffs[file_name]
+
+	return sorted_diffs
+
 def get_parent_commit(commit_hash):
         hash_string = commit_hash + "^"
         
@@ -48,7 +68,7 @@ def get_file_diffs(git_log):
 	for log in split_log:
 		separate_diffs_list = [ ]
 		fileName = log.split()[0]
-		fileName = fileName.split("/")[-1]
+		#fileName = fileName.split("/")[-1]
 		
 		# print(fileName)
 		
@@ -87,47 +107,50 @@ def recursive_blame(file_name, line_number, substring, head):
 
 		#print("git_diff_result: " + git_diff_result)
 
-		if "/" in file_name:
-			file_name2 = file_name.split("/")[-1]
+		sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
 
-		content_list = file_diffs_map.get(file_name2)
+		#content_list = file_diffs_map.get(file_name)
 
 		# for c in content_list:
 		# 	print(c)
 
-		for content in content_list:
-			content_lines = content.split("\n")
+		blaming = False
 
-			diff_line_tokens = content_lines[0].split(" ")
+		for diff_file_name, content_lines in sorted_diffs.items():
+			for content in content_lines:
+				content_lines = content.split("\n")
 
-			base_line_number = -1
+				diff_line_tokens = content_lines[0].split(" ")
 
-			for token in diff_line_tokens:
-				if token[0] is "-":
-					if token.find(",") > -1:
-						base_line_number = token.split(",")[0]
-					else:
-						base_line_number = token
+				base_line_number = -1
 
-					base_line_number = base_line_number.replace("-", "")
+				for token in diff_line_tokens:
+					if token[0] is "-":
+						if token.find(",") > -1:
+							base_line_number = token.split(",")[0]
+						else:
+							base_line_number = token
 
+						base_line_number = base_line_number.replace("-", "")
+
+						break
+
+				for i, line in enumerate(content_lines):
+					if line:
+						if line[0] is "-":
+							if line.find(substring) > -1:
+								line_number = str(int(base_line_number) + i)
+								head = blame_hash
+
+								# print("content: " + content)
+								# print("base_line_number: " + str(base_line_number))
+								# print("line number: " + line_number)
+								# print("head: " + head)
+								blaming = True
+								break
+
+				if blaming:
 					break
-
-			blaming = False
-
-			for i, line in enumerate(content_lines):
-				if line:
-					if line[0] is "-":
-						if line.find(substring) > -1:
-							line_number = str(int(base_line_number) + i)
-							head = blame_hash
-
-							# print("content: " + content)
-							# print("base_line_number: " + str(base_line_number))
-							# print("line number: " + line_number)
-							# print("head: " + head)
-							blaming = True
-							break
 
 			if blaming:
 				break
