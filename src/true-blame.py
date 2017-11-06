@@ -37,17 +37,20 @@ def sort_file_diffs(diffs, file_name):
 	return sorted_diffs
 
 def git_process(cmd, *params):
-	print(params)
+	# DEBUG 
+	print("git " + cmd + " " + ' '.join(str(x) for x in params[0]))
+	
+	args = ["git"] + [cmd] + params[0]
+	process = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=dir_path)
 
-
-def run_diff(blame_hash, parent_hash):
-	# print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
-	process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
 	gitDiff = process.communicate()[0].decode("UTF-8", "replace")
-
 	return gitDiff
 
-def run_blame(fn, ln, head):
+def git_diff(blame_hash, parent_hash):
+	args = ["-M", parent_hash, blame_hash, "-U0"]
+	return git_process("diff", args)
+
+def git_blame(fn, ln, head):
 	if head == "HEAD":
 		head_string = head
 	else:
@@ -55,15 +58,8 @@ def run_blame(fn, ln, head):
 
 	line_range = str(ln) + "," + str(ln)
 
-	# print("git blame -L " + line_range + " -p " + head_string + " -- " + fn)
-
-	process = subprocess.Popen(["git", "blame", "-L", line_range, "-p", head_string, "--", fn], stdout=subprocess.PIPE, cwd=dir_path)
-	git_blame = (process.communicate()[0]).decode("UTF-8", "replace")
-
-	# for line in git_blame.splitlines():
-	# 	print(line)
-
-	return git_blame
+	args = ["-L", line_range, "-p", head_string, "--", fn]
+	return git_process("blame", args)
 
 def get_file_diffs(git_log):
 	file_diffs = { }
@@ -93,17 +89,17 @@ def recursive_blame(file_name, line_number, substring, head):
 	while blaming:
 		print("==============")
 		print("HEAD : " + head)
-		git_blame = run_blame(file_name, line_number, head)
+		gitBlame = git_blame(file_name, line_number, head)
 		try:
-			blame_hash = git_blame.split()[0]
+			blame_hash = gitBlame.split()[0]
 			# Refactor later
-			other = re.compile("((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))").split(git_blame)[1]
+			other = re.compile("((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))").split(gitBlame)[1]
 			parent_hash = other.split()[1]
 		except:
 			print("ERROR: Invalid Blame Target")
 			sys.exit(0)
 
-		git_diff_result = run_diff(blame_hash, parent_hash)
+		git_diff_result = git_diff(blame_hash, parent_hash)
 		file_diffs_map = get_file_diffs(git_diff_result)
 
 		sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
