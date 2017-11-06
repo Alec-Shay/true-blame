@@ -23,6 +23,7 @@ tb() {
 Additionally hook the function tb() to your build / ant-all / gw workflow to always have the hash of your bundle.
 
 <a name="intellij" />
+
 ## IntelliJ Setup
 
 1. After cloning the `true-blame` repository, in IntelliJ, navigate to `File` -> `Settings`.
