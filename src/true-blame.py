@@ -45,19 +45,25 @@ def get_parent_commit(commit_hash):
 def run_diff(blame_hash):
         parent_hash = get_parent_commit(blame_hash)
 
-        print("RUN_DIFF: " + "git diff " + parent_hash + " " + blame_hash + " -U0")
-        process = subprocess.Popen(["git", "diff", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
+        print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
+        process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
         gitDiff = (process.communicate()[0]).decode("UTF-8")
 
         return gitDiff
 
 def run_blame(fn, ln, head):
+	if head == "HEAD":
+		head_string = head
+	else:
+		head_string = head + "^"
+
 	line_range = str(ln) + "," + str(ln)
 
-	print("git blame " + fn + " " + "-L" + " " + line_range + " " + head + " -p")
+	print("git blame -L " + line_range + " -p " + head_string + " -- " + fn)
 
-	process = subprocess.Popen(["git", "blame", fn, "-L", line_range, head, "-p"], stdout=subprocess.PIPE, cwd=dir_path)
+	process = subprocess.Popen(["git", "blame", "-L", line_range, "-p", head_string, "--", fn], stdout=subprocess.PIPE, cwd=dir_path)
 	git_blame = (process.communicate()[0]).decode("UTF-8")
+
 	return git_blame
 
 def get_file_diffs(git_log):
@@ -135,17 +141,25 @@ def recursive_blame(file_name, line_number, substring, head):
 
 						break
 
+				removal_lines = 0
+
 				for i, line in enumerate(content_lines):
 					if line:
 						if line[0] is "-":
+							removal_lines += 1
+
 							if line.find(substring) > -1:
-								line_number = str(int(base_line_number) + i)
+								line_number = str(int(base_line_number) + removal_lines - 1)
+								print("Traced back to: " + blame_hash)
+								#head = get_parent_commit(blame_hash)
 								head = blame_hash
 
 								# print("content: " + content)
 								# print("base_line_number: " + str(base_line_number))
 								# print("line number: " + line_number)
 								# print("head: " + head)
+								file_name = diff_file_name
+
 								blaming = True
 								break
 
@@ -168,16 +182,16 @@ def main():
 
 	    # FOR TESTING
 	    #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-	    #line_number = "98"
+	    #line_number = "125"
 	    #substring = "\"allowEmptyOptions=true\""
 
-	    #file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
-	    #line_number = "209"
-	    #substring = "sb.append(StringPool.SPACE)"
+	    file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
+	    line_number = "209"
+	    substring = "sb.append(StringPool.SPACE)"
 
-	    file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-	    line_number = "157"
-	    substring = "rootPortletId"
+	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
+	    #line_number = "157"
+	    #substring = "rootPortletId"
 	else:
 	    file_name = sys.argv[1]
 	    line_number = sys.argv[2]
