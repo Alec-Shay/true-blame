@@ -54,7 +54,7 @@ def run_diff(blame_hash):
 def run_blame(fn, ln, head):
 	line_range = str(ln) + "," + str(ln)
 
-	print("git blame " + fn + " " + "-L" + " " + line_range + " " + head + "-p")
+	print("git blame " + fn + " " + "-L" + " " + line_range + " " + head + " -p")
 
 	process = subprocess.Popen(["git", "blame", fn, "-L", line_range, head, "-p"], stdout=subprocess.PIPE, cwd=dir_path)
 	git_blame = (process.communicate()[0]).decode("UTF-8")
