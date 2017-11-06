@@ -2,39 +2,19 @@ import os
 import re
 import subprocess
 import sys
-
+	
 dir_path = os.getcwd()
 
-def get_line(file_name, line_number):
-        line = ""
-        file = open(dir_path + "/" + file_name)
-        
-        for i, counted_line in enumerate(file):
-                if i == (int(line_number) - 1):
-                        line = counted_line
-                        break
-        file.close()
-        return line
+# GIT
+def git_blame(fn, ln, head):
+	line_range = str(ln) + "," + str(ln)
 
-def sort_file_diffs(diffs, file_name):
-	sorted_diffs = { }
-	sorted_diffs[file_name] = "temp"
-	simplified_file_name = file_name.split("/")[-1]
+	args = ["-L", line_range, "-p", head, "--", fn]
+	return git_process("blame", args)
 
-	for k, v in diffs.items():
-		simplified_k = k.split("/")[-1]
-
-		if simplified_k == simplified_file_name:
-			sorted_diffs[k] = v
-
-	for k, v in diffs.items():
-		if k not in sorted_diffs:
-			sorted_diffs[k] = v
-
-	if sorted_diffs[file_name] == "temp":
-		del sorted_diffs[file_name]
-
-	return sorted_diffs
+def git_diff(blame_hash, parent_hash):
+	args = ["-M", parent_hash, blame_hash, "-U0"]
+	return git_process("diff", args)
 
 def git_process(cmd, *params):
 	# DEBUG 
@@ -46,20 +26,17 @@ def git_process(cmd, *params):
 	gitDiff = process.communicate()[0].decode("UTF-8", "replace")
 	return gitDiff
 
-def git_diff(blame_hash, parent_hash):
-	args = ["-M", parent_hash, blame_hash, "-U0"]
-	return git_process("diff", args)
-
-def git_blame(fn, ln, head):
-	if head == "HEAD":
-		head_string = head
-	else:
-		head_string = head + "^"
-
-	line_range = str(ln) + "," + str(ln)
-
-	args = ["-L", line_range, "-p", head_string, "--", fn]
-	return git_process("blame", args)
+# UTIL
+def get_line(file_name, line_number):
+        line = ""
+        file = open(dir_path + "/" + file_name)
+        
+        for i, counted_line in enumerate(file):
+                if i == (int(line_number) - 1):
+                        line = counted_line
+                        break
+        file.close()
+        return line
 
 def get_file_diffs(git_log):
 	file_diffs = { }
@@ -83,12 +60,32 @@ def get_file_diffs(git_log):
 
 	return file_diffs
 
+def sort_file_diffs(diffs, file_name):
+	sorted_diffs = { }
+	sorted_diffs[file_name] = "temp"
+	simplified_file_name = file_name.split("/")[-1]
+
+	for k, v in diffs.items():
+		simplified_k = k.split("/")[-1]
+
+		if simplified_k == simplified_file_name:
+			sorted_diffs[k] = v
+
+	for k, v in diffs.items():
+		if k not in sorted_diffs:
+			sorted_diffs[k] = v
+
+	if sorted_diffs[file_name] == "temp":
+		del sorted_diffs[file_name]
+
+	return sorted_diffs
+
 def recursive_blame(file_name, line_number, substring, head):
 	blaming = True
 
 	while blaming:
 		print("==============")
-		print("HEAD : " + head)
+		print("Checking : " + head)
 		gitBlame = git_blame(file_name, line_number, head)
 		try:
 			blame_hash = gitBlame.split()[0]
@@ -134,9 +131,9 @@ def recursive_blame(file_name, line_number, substring, head):
 
 							if line.find(substring) > -1:
 								line_number = str(int(base_line_number) + removal_lines - 1)
-								print("Traced back to: " + blame_hash)
+								print("Traced to: " + blame_hash)
 								#head = get_parent_commit(blame_hash)
-								head = blame_hash
+								head = blame_hash + "^"
 
 								file_name = diff_file_name
 								blaming = True
@@ -188,8 +185,8 @@ def main():
 	        print(sys.argv[i])
 	            
 	        if x == "-s" and len(sys.argv) > (i + 1):
-	                substring = sys.argv[i + 1]
-	                break
+	        	substring = sys.argv[i + 1]
+	        	break
 	head = "HEAD"
 
 	blame_hash = recursive_blame(file_name, line_number, substring, head)
