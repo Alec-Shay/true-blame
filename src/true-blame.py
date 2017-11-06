@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 
@@ -35,22 +36,16 @@ def sort_file_diffs(diffs, file_name):
 
 	return sorted_diffs
 
-def get_parent_commit(commit_hash):
-        hash_string = commit_hash + "^"
+def git_process(cmd, *params):
+	print(params)
 
-        process = subprocess.Popen(["git", "rev-parse", hash_string], stdout=subprocess.PIPE, cwd=dir_path)
 
-        return (process.communicate()[0]).decode("UTF-8").replace("\n","")
+def run_diff(blame_hash, parent_hash):
+	# print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
+	process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
+	gitDiff = process.communicate()[0].decode("UTF-8", "replace")
 
-def run_diff(blame_hash):
-        parent_hash = get_parent_commit(blame_hash)
-
-        # print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
-
-        process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
-        gitDiff = process.communicate()[0].decode("UTF-8", "replace")
-
-        return gitDiff
+	return gitDiff
 
 def run_blame(fn, ln, head):
 	if head == "HEAD":
@@ -101,11 +96,14 @@ def recursive_blame(file_name, line_number, substring, head):
 		git_blame = run_blame(file_name, line_number, head)
 		try:
 			blame_hash = git_blame.split()[0]
+			# Refactor later
+			other = re.compile("((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))").split(git_blame)[1]
+			parent_hash = other.split()[1]
 		except:
 			print("ERROR: Invalid Blame Target")
 			sys.exit(0)
 
-		git_diff_result = run_diff(blame_hash)
+		git_diff_result = run_diff(blame_hash, parent_hash)
 		file_diffs_map = get_file_diffs(git_diff_result)
 
 		sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
@@ -154,6 +152,7 @@ def recursive_blame(file_name, line_number, substring, head):
 			if blaming:
 				break
 
+	print("==============")
 	return blame_hash
 
 def main():
@@ -196,9 +195,8 @@ def main():
 	                substring = sys.argv[i + 1]
 	                break
 	head = "HEAD"
-	#print(get_line(file_name, line_number))
 
 	blame_hash = recursive_blame(file_name, line_number, substring, head)
-	print(blame_hash)
+	print("True Blame Commit : " + blame_hash)
 
 main()
