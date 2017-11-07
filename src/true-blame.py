@@ -37,6 +37,7 @@ def get_line(file_name, line_number):
         if i == (int(line_number) - 1):
             line = counted_line
             break
+
     file.close()
     return line
 
@@ -144,8 +145,7 @@ def recursive_blame(file_name, line_number, substring, head):
             other = re.compile(regex_string).split(current_blame)[1]
             parent_hash = other.split()[1]
         except:
-            print("ERROR: Invalid Blame Target")
-            sys.exit(0)
+            return blame_hash
 
         git_diff_result = git_diff(blame_hash, parent_hash)
         file_diffs_map = get_file_diffs(git_diff_result)
@@ -164,7 +164,6 @@ def recursive_blame(file_name, line_number, substring, head):
         # for k, v in output_params:
         #     locals()['k'] = v
 
-    print("==============")
     return blame_hash
 
 
@@ -228,6 +227,7 @@ def main():
         sys.exit(0)
 
     blame_hash = recursive_blame(file_name, line_number, substring, head)
+    print("==============")
     print("True Blame Commit : " + blame_hash)
 
 
