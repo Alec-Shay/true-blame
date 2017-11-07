@@ -129,17 +129,17 @@ def parse_diffs(input_params, sorted_diffs):
                             return_params['head'] = blame_hash + "^"
                             return_params['file_name'] = diff_file_name
                             return_params['line_number'] = str(line_number)
-                            return_params['blaming'] = True
+                            return_params['is_blaming'] = True
                             return return_params
 
-    return_params['blaming'] = False
+    return_params['is_blaming'] = False
     return return_params
 
 
 def recursive_blame(file_name, line_number, substring, head):
-    blaming = True
+    is_blaming = True
 
-    while blaming:
+    while is_blaming:
         print("==============")
         print("Checking : " + head)
         current_blame = git_blame(file_name, line_number, head)
@@ -161,8 +161,8 @@ def recursive_blame(file_name, line_number, substring, head):
                         'substring': substring}
         output_params = parse_diffs(input_params, sorted_diffs)
 
-        blaming = output_params['blaming']
-        if blaming:
+        is_blaming = output_params['is_blaming']
+        if is_blaming:
             head = output_params['head']
             file_name = output_params['file_name']
             line_number = output_params['line_number']
@@ -174,13 +174,14 @@ def recursive_blame(file_name, line_number, substring, head):
 
 def main():
     substring = None
+    head = "HEAD"
 
     if (len(sys.argv) < 3):
         print("Filename: ", end="", flush=True)
         file_name = input()
-        print("Line number: ", end="", flush=True)
+        print("Line Number: ", end="", flush=True)
         line_number = input()
-        print("Substring (enter nothing to trace exact line): ", flush=True)
+        print("Substring (default is exact line): ", end="", flush=True)
         substring = input()
 
         # FOR TESTING
@@ -217,23 +218,38 @@ def main():
 
                 print(sys.argv[i + 1])
                 break
+    
+    try:
+        file_name = file_name.strip()
+        line_number = line_number.strip()
 
-    if file_name.find("\\") > -1:
-        file_name = file_name.replace("\\", "/")
+        if file_name.find("\\") > -1:
+            file_name = file_name.replace("\\", "/")
 
-    head = "HEAD"
+        if not re.compile('^[^\s\"\'\.]+(\.)[a-z]{1,6}$').match(file_name):
+            print("INFO: " + file_name)
+
+        if not re.compile(r'^[0-9]+$').match(line_number):
+            raise Exception()
+    except:
+        print("Filename: " + file_name)
+        print("Line Number: " + line_number)
+
+        print("ERROR: INVALID PARAMETERS")
+        print("Exiting.")
+
+        sys.exit(0)
 
     if substring is None:
         substring = get_line(file_name, line_number).strip()
     elif substring.find("\n") > -1:
-        print("ERROR: more than one line selected for blame.")
-        print("Exiting True Blame.")
+        print("ERROR: Mulitple blame lines selected.")
+        print("Exiting.")
 
         sys.exit(0)
 
     blame_hash = recursive_blame(file_name, line_number, substring, head)
     print("==============")
     print("True Blame Commit : " + blame_hash)
-
 
 main()
