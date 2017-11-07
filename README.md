@@ -1,13 +1,23 @@
 ### Contents
-- [Prerequisites](#prerequisites)
+- [Parameters](#parameters)
 - [Installation](#installation)
-- [IntelliJ Setup](#intellij)
+- [IntelliJ](#intellij)
+    - [Usage notes](#intellijusage)
+- [Alias](#alias)
 
-## Prerequisites
-Python 3 must be installed to run the script.
+## Parameters
+
+- `-s <string>`: specify a specific substring of the desired line to search on
+   - not using `-s` will use the whole line by default (without leading/trailing whitespace)
+
+- `-r <start-commit> <end-commit>`: search in reverse
+   - start-commit and end-commit are assumed HEAD by default
+
 
 ## Installation
-Clone this repository : 
+1. Install Python 3
+
+2. Clone this repository : 
 `git@github.com/alec-shay/true-blame.git`
 
 <a name="intellij" />
@@ -22,14 +32,30 @@ Clone this repository :
 3. Add a name (i.e., "true blame") and ensure "Open console" is checked under `Options`
 4. Under `Show in`, uncheck all options except `Editor menu`.
 5. Set the following under `Tool settings`:
-   - For Program: py
-   - For Parameters: /path/to/true-blame.py $FileRelativePath$ $LineNumber$ -s "$SelectedText$"
+   - Program: py
+   - Parameters: /path/to/true-blame.py $FileRelativePath$ $LineNumber$ -s "$SelectedText$"
    - Working directory: $ProjectFileDir$
 6. Optionally, add a shortcut by going to Keymap -> External Tools and right-clicking True Blame.
 
 Now you can run True Blame from IntelliJ by using the right-click context menu for selected text!
 
-- **Warning: IntelliJ removes quotation marks.**  For selected text with quotes (`message.getString("className")`) replace the External Tool's `"$SelectedText$"` parameter with `"$Prompt$"`.  Use the program as before except input the desired substring with quotes escaped (`message.getString(\"className\")`.
+<a name="intellijusage" />
+
+### IntelliJ Usage Notes:
+
+Select the desired text and right-click, then under External Tools click True Blame.
+
+![Right-click context screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/SampleIntelliJUse.png)
+
+- **Warning: IntelliJ removes quotation marks.**  For selected text with quotes (`message.getString("className")`) make use of an External Tool with a $Prompt$ parameter instead.  You can use the program as before except input the desired substring with quotes escaped (`"message.getString(\"className\")"`.
+
+To allow for more flexible parameters (including selected text with quotes), add another External Tool with the following for Parameters:
+   - /path/to/true-blame.py $FileRelativePath$ $LineNumber$ $Prompt$
+   
+![Right-click prompt screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/SampleIntelliJPrompt.png)
+   
+
+<a name="alias" />
 
 ## Alias Setup
 Add this section to .bash_aliases (or the equivalent on whichever shell you're using) which calls the script.  Ensure /path/to/clone/location is modified to be wherever you've cloned the repository.
@@ -48,3 +74,7 @@ Filename: modules/apps/web-experience/asset/asset-publisher-web/src/main/java/co
 Line Number: 157
 Substring (default: exact line): rootPortletId
 ```
+
+### Usage:
+
+```tb path/to/file/filename.extension line_number arguments```
