@@ -80,6 +80,46 @@ def sort_file_diffs(diffs, file_name):
 
 	return sorted_diffs
 
+# CONTROL
+def parse_diffs(input_params, sorted_diffs):
+	return_params = {}
+	blame_hash = input_params['blame_hash']
+	substring = input_params['substring']
+
+	for diff_file_name, content_lines in sorted_diffs.items():
+		for content in content_lines:
+			base_line_number = -1
+			content_lines = content.split("\n")
+
+			diff_line_tokens = content_lines[0].split(" ")
+			for token in diff_line_tokens:
+				if token[0] is "-":
+					if token.find(",") > -1:
+						base_line_number = token.split(",")[0]
+					else:
+						base_line_number = token
+
+					base_line_number = base_line_number.replace("-", "")
+					break
+
+			removal_lines = 0
+			for i, line in enumerate(content_lines):
+				if line:
+					if line[0] is "-":
+						removal_lines += 1
+
+						if line.find(substring) > -1:
+							print("Traced to: " + blame_hash)
+							
+							return_params['head'] = blame_hash + "^"
+							return_params['file_name'] = diff_file_name
+							return_params['line_number'] = str(int(base_line_number) + removal_lines - 1)
+							return_params['blaming'] = True
+							return return_params
+	
+	return_params['blaming'] = False
+	return return_params
+
 def recursive_blame(file_name, line_number, substring, head):
 	blaming = True
 
@@ -101,49 +141,17 @@ def recursive_blame(file_name, line_number, substring, head):
 
 		sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
 
-		blaming = False
+		input_params = {'blame_hash': blame_hash, 
+						'substring': substring}
+		output_params = parse_diffs(input_params, sorted_diffs)
 
-		for diff_file_name, content_lines in sorted_diffs.items():
-			for content in content_lines:
-				content_lines = content.split("\n")
-
-				diff_line_tokens = content_lines[0].split(" ")
-
-				base_line_number = -1
-
-				for token in diff_line_tokens:
-					if token[0] is "-":
-						if token.find(",") > -1:
-							base_line_number = token.split(",")[0]
-						else:
-							base_line_number = token
-
-						base_line_number = base_line_number.replace("-", "")
-
-						break
-
-				removal_lines = 0
-
-				for i, line in enumerate(content_lines):
-					if line:
-						if line[0] is "-":
-							removal_lines += 1
-
-							if line.find(substring) > -1:
-								line_number = str(int(base_line_number) + removal_lines - 1)
-								print("Traced to: " + blame_hash)
-								#head = get_parent_commit(blame_hash)
-								head = blame_hash + "^"
-
-								file_name = diff_file_name
-								blaming = True
-								break
-
-				if blaming:
-					break
-
-			if blaming:
-				break
+		blaming = output_params['blaming']
+		if blaming:
+			head = output_params['head']
+			file_name = output_params['file_name']
+			line_number = output_params['line_number']
+		# for k, v in output_params:
+		# 	locals()['k'] = v
 
 	print("==============")
 	return blame_hash
@@ -165,10 +173,12 @@ def main():
 	    # file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
 	    # line_number = "209"
 	    # substring = "sb.append(StringPool.SPACE)"
+	    # EXPECT : b2590ecfa4b8d6cbefdb65c5cc7949a23e33155b
 
 	    file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    line_number = "157"
 	    substring = "rootPortletId"
+	    # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
 
 	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    #line_number = "21"
