@@ -237,20 +237,21 @@ def main():
         file_name = input()
         print("Line Number: ", end="", flush=True)
         line_number = input()
-        print("Substring (default exact line): ", flush=True)
+        print("Substring (default: exact line): ", flush=True)
         substring = input()
+
         print("Reverse? (Y/N) ", end="", flush=True)
         reverse_string = input()
         reverse = reverse_string[0] is "Y" or reverse_string[0] is "y"
 
         if reverse:
-            print("Starting point for reverse blame (enter nothing for HEAD): ", end="", flush=True)
+            print("Starting Hash (default: HEAD): ", end="", flush=True)
             head = input()
 
             if head is None:
                 head = "HEAD"
 
-            print("Ending point for reverse blame (default: HEAD): ", end="", flush=True)
+            print("Ending Hash (default: HEAD): ", end="", flush=True)
             reverse_end_point = input()
 
             if reverse_end_point is None:
