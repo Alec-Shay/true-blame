@@ -29,7 +29,7 @@ Additionally hook the function tb() to your build / ant-all / gw workflow to alw
 1. After cloning the `true-blame` repository, in IntelliJ, navigate to `File` -> `Settings`.
 2. Add a new external tool under `Tools` -> `External Tools`.
 
-![External Tools screenshot](https://github.com/Alec-Shay/true-blame/blob/doc/img/IntelliJExternalToolSetup.png)
+![External Tools screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/IntelliJExternalToolSetup.png)
 
 3. Add a name (i.e., "true blame") and ensure "Open console" is checked under `Options`
 4. Under `Show in`, uncheck all options except `Editor menu`.
