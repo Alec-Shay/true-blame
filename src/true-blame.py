@@ -4,13 +4,18 @@ import subprocess
 import sys
 
 dir_path = os.getcwd()
-
+reverse = False
+reverse_end_point = "HEAD"
 
 # GIT
 def git_blame(file_name, line_number, head):
     line_range = str(line_number) + "," + str(line_number)
 
-    args = ["-L", line_range, "-p", head, "--", file_name]
+    if reverse:
+        args = ["-L", line_range, "-p", "--reverse", head, "--", file_name]
+    else:
+        args = ["-L", line_range, "-p", head, "--", file_name]
+
     return git_process("blame", args)
 
 
@@ -24,6 +29,11 @@ def git_rev_parse(hash):
     return git_process("rev-parse", args).replace("\n","")
 
 
+def git_rev_list_with_ancestry_path(commit_hash):
+    args = ["--ancestry-path", commit_hash + ".." + reverse_end_point]
+    return git_process("rev-list", args)
+
+
 def git_process(cmd, *params):
     print("git " + cmd + " " + ' '.join(str(x) for x in params[0]))
 
@@ -34,6 +44,16 @@ def git_process(cmd, *params):
 
 
 # UTIL
+def fix_current_blame_with_hash(blame, hash):
+    blame_lines = blame.splitlines()
+
+    new_blame = hash + blame_lines[0][blame_lines[0].find(" "):]
+
+    for i, x in enumerate(blame_lines):
+        new_blame += "\n" + x
+
+    return new_blame
+
 def get_line(file_name, line_number):
     file = open(dir_path + "/" + file_name)
     line = ""
@@ -73,6 +93,17 @@ def get_file_diffs(git_log):
     return file_diffs
 
 
+def get_blame_parent(blame_hash, blame):
+    if reverse:
+        parent_hash = git_rev_parse(blame_hash)
+    else:
+        regex_string = "((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
+        other = re.compile(regex_string).split(blame)[1]
+        parent_hash = other.split()[1]
+
+    return parent_hash
+
+
 def sort_file_diffs(diffs, file_name):
     sorted_diffs = {}
     sorted_diffs[file_name] = "temp"
@@ -100,6 +131,11 @@ def parse_diffs(input_params, sorted_diffs):
     blame_hash = input_params['blame_hash']
     substring = input_params['substring']
 
+    if reverse:
+        relevant_char = "+"
+    else:
+        relevant_char = "-"
+
     for diff_file_name, content_lines in sorted_diffs.items():
         for content in content_lines:
             base_line_number = -1
@@ -107,50 +143,64 @@ def parse_diffs(input_params, sorted_diffs):
 
             diff_line_tokens = content_lines[0].split(" ")
             for token in diff_line_tokens:
-                if token[0] is "-":
+                if token[0] is relevant_char:
                     if token.find(",") > -1:
                         base_line_number = token.split(",")[0]
                     else:
                         base_line_number = token
 
-                    base_line_number = base_line_number.replace("-", "")
+                    base_line_number = base_line_number.replace(relevant_char, "")
                     break
 
-            removal_lines = -1
+            relevant_lines = -1
+
             for i, line in enumerate(content_lines):
                 if line:
-                    if line[0] is "-":
-                        removal_lines += 1
+                    if line[0] is relevant_char:
+                        relevant_lines += 1
 
                         if line.find(substring) > -1:
                             print("Traced to: " + blame_hash)
-                            line_number = int(base_line_number) + removal_lines
+                            line_number = int(base_line_number) + relevant_lines
 
                             return_params['head'] = blame_hash + "^"
                             return_params['file_name'] = diff_file_name
                             return_params['line_number'] = str(line_number)
-                            return_params['is_blaming'] = True
+                            return_params['blaming'] = True
                             return return_params
 
-    return_params['is_blaming'] = False
+    return_params['blaming'] = False
     return return_params
 
 
 def recursive_blame(file_name, line_number, substring, head):
-    is_blaming = True
+    blaming = True
 
-    while is_blaming:
+    while blaming:
         print("==============")
         print("Checking : " + head)
         current_blame = git_blame(file_name, line_number, head)
+
         try:
             blame_hash = current_blame.split()[0]
-            # Refactor later (regex)
-            regex_string = "((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
-            other = re.compile(regex_string).split(current_blame)[1]
-            parent_hash = other.split()[1]
+
+            if reverse:
+                parent_hash = blame_hash
+
+                ancestry = git_rev_list_with_ancestry_path(blame_hash).splitlines()
+
+                try:
+                    blame_hash = ancestry[-1]
+                except:
+                    return current_blame
+            else:
+                try:
+                    parent_hash = get_blame_parent(blame_hash, current_blame)
+                except:
+                    return current_blame
         except:
-            return blame_hash
+            print("ERROR: Invalid commit for git blame.")
+            sys.exit(0)
 
         git_diff_result = git_diff(blame_hash, parent_hash)
         file_diffs_map = get_file_diffs(git_diff_result)
@@ -161,28 +211,50 @@ def recursive_blame(file_name, line_number, substring, head):
                         'substring': substring}
         output_params = parse_diffs(input_params, sorted_diffs)
 
-        is_blaming = output_params['is_blaming']
-        if is_blaming:
+        blaming = output_params['blaming']
+        if blaming:
             head = output_params['head']
             file_name = output_params['file_name']
             line_number = output_params['line_number']
         # for k, v in output_params:
         #     locals()['k'] = v
 
-    return blame_hash
+    if reverse:
+        current_blame = fix_current_blame_with_hash(current_blame, blame_hash)
+
+    return current_blame
 
 
 def main():
-    substring = None
+    global reverse
+    global reverse_end_point
+
     head = "HEAD"
+    substring = None
 
     if (len(sys.argv) < 3):
         print("Filename: ", end="", flush=True)
         file_name = input()
         print("Line Number: ", end="", flush=True)
         line_number = input()
-        print("Substring (default is exact line): ", end="", flush=True)
+        print("Substring (default exact line): ", flush=True)
         substring = input()
+        print("Reverse? (Y/N) ", end="", flush=True)
+        reverse_string = input()
+        reverse = reverse_string[0] is "Y" or reverse_string[0] is "y"
+
+        if reverse:
+            print("Starting point for reverse blame (enter nothing for HEAD): ", end="", flush=True)
+            head = input()
+
+            if head is None:
+                head = "HEAD"
+
+            print("Ending point for reverse blame (default: HEAD): ", end="", flush=True)
+            reverse_end_point = input()
+
+            if reverse_end_point is None:
+                reverse_end_point = "HEAD"
 
         # FOR TESTING
         #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
@@ -216,9 +288,15 @@ def main():
             if x == "-s" and len(sys.argv) > (i + 1):
                 substring = sys.argv[i + 1]
 
-                print(sys.argv[i + 1])
-                break
+            if x == "-r":
+                reverse = True
     
+                if len(sys.argv) > (i + 1) and sys.argv[i + 1][0] is not "-":
+                    head = sys.argv[i + 1]
+
+                if len(sys.argv) > (i + 2) and sys.argv[i + 2][0] is not "-":
+                    reverse_end_point = sys.argv[i + 2]
+
     try:
         file_name = file_name.strip()
         line_number = line_number.strip()
@@ -248,8 +326,8 @@ def main():
 
         sys.exit(0)
 
-    blame_hash = recursive_blame(file_name, line_number, substring, head)
+    blame = recursive_blame(file_name, line_number, substring, head)
     print("==============")
-    print("True Blame Commit : " + blame_hash)
+    print("True Blame : \n" + blame)
 
 main()
