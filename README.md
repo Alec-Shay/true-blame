@@ -29,7 +29,7 @@ Clone this repository :
 
 Now you can run True Blame from IntelliJ by using the right-click context menu for selected text!
 
-- **Warning:** IntelliJ removes quotation marks.  For selected text with quotes (`message.getString("className")`) replace the External Tool's `"$SelectedText$"` parameter with `"$Prompt$"`.  Use the program as before except input the desired substring with quotes escaped (`message.getString(\"className\")`.
+- **Warning: IntelliJ removes quotation marks.**  For selected text with quotes (`message.getString("className")`) replace the External Tool's `"$SelectedText$"` parameter with `"$Prompt$"`.  Use the program as before except input the desired substring with quotes escaped (`message.getString(\"className\")`.
 
 ## Alias Setup
 Add this section to .bash_aliases (or the equivalent on whichever shell you're using) which calls the script.  Ensure /path/to/clone/location is modified to be wherever you've cloned the repository.
@@ -46,5 +46,5 @@ To run, type `tb` and enter the file name, line number, and substring when promo
 ```
 Filename: modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java
 Line Number: 157
-Substring (default is exact line): rootPortletId
+Substring (default: exact line): rootPortletId
 ```
