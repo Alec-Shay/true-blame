@@ -7,10 +7,10 @@
 
 ## Parameters
 
-- `-s <string>`: specify a specific substring of the desired line to search on
+- `-s <string>` : specify a specific substring of the desired line to search on
    - not using `-s` will use the whole line by default (without leading/trailing whitespace)
 
-- `-r <start-commit> <end-commit>`: search in reverse
+- `-r <start-commit> <end-commit>` : search in reverse
    - start-commit and end-commit are assumed HEAD by default
 
 
