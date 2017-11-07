@@ -157,6 +157,8 @@ def recursive_blame(file_name, line_number, substring, head):
 	return blame_hash
 
 def main():
+	substring = None
+
 	if (len(sys.argv) < 3):
 	    print("Filename: ", end="", flush=True)
 	    file_name = input()
@@ -196,12 +198,22 @@ def main():
 	            
 	        if x == "-s" and len(sys.argv) > (i + 1):
 	        	substring = sys.argv[i + 1]
+
+	        	print(sys.argv[i + 1])
 	        	break
 
-	if file_name.find("\\", -1):
+	if file_name.find("\\") > -1:
 		file_name = file_name.replace("\\", "/")
 
 	head = "HEAD"
+
+	if substring is None:
+		substring = get_line(file_name, line_number).strip()
+	elif substring.find("\n") > -1:
+		print("ERROR: more than one line selected for blame.")
+		print("Exiting True Blame.")
+
+		sys.exit(0)
 
 	blame_hash = recursive_blame(file_name, line_number, substring, head)
 	print("True Blame Commit : " + blame_hash)
