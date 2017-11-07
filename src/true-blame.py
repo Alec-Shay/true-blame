@@ -1,9 +1,32 @@
 import os
+import re
 import subprocess
 import sys
-
+	
 dir_path = os.getcwd()
 
+# GIT
+def git_blame(fn, ln, head):
+	line_range = str(ln) + "," + str(ln)
+
+	args = ["-L", line_range, "-p", head, "--", fn]
+	return git_process("blame", args)
+
+def git_diff(blame_hash, parent_hash):
+	args = ["-M", parent_hash, blame_hash, "-U0"]
+	return git_process("diff", args)
+
+def git_process(cmd, *params):
+	# DEBUG 
+	print("git " + cmd + " " + ' '.join(str(x) for x in params[0]))
+	
+	args = ["git"] + [cmd] + params[0]
+	process = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=dir_path)
+
+	gitDiff = process.communicate()[0].decode("UTF-8", "replace")
+	return gitDiff
+
+# UTIL
 def get_line(file_name, line_number):
         line = ""
         file = open(dir_path + "/" + file_name)
@@ -14,6 +37,28 @@ def get_line(file_name, line_number):
                         break
         file.close()
         return line
+
+def get_file_diffs(git_log):
+	file_diffs = { }
+	split_log = git_log.split("diff --git a/")
+	split_log.pop(0)
+
+	for log in split_log:
+		separate_diffs_list = [ ]
+		fileName = log.split()[0]
+		fileDiff = log.split("@@")
+
+		if len(fileDiff) < 2:
+			print("WARN: Invalid Diff Target: " + fileName.split("/")[-1])
+			continue
+
+		for i in range(int(len(fileDiff) / 2)):
+			j = (i*2)+1
+			separate_diffs_list.append("@@" + fileDiff[j] + "@@" + fileDiff[j + 1])
+
+		file_diffs[fileName] = separate_diffs_list
+
+	return file_diffs
 
 def sort_file_diffs(diffs, file_name):
 	sorted_diffs = { }
@@ -35,141 +80,80 @@ def sort_file_diffs(diffs, file_name):
 
 	return sorted_diffs
 
-def get_parent_commit(commit_hash):
-        hash_string = commit_hash + "^"
+# CONTROL
+def parse_diffs(input_params, sorted_diffs):
+	return_params = {}
+	blame_hash = input_params['blame_hash']
+	substring = input_params['substring']
 
-        process = subprocess.Popen(["git", "rev-parse", hash_string], stdout=subprocess.PIPE, cwd=dir_path)
+	for diff_file_name, content_lines in sorted_diffs.items():
+		for content in content_lines:
+			base_line_number = -1
+			content_lines = content.split("\n")
 
-        return (process.communicate()[0]).decode("UTF-8").replace("\n","")
+			diff_line_tokens = content_lines[0].split(" ")
+			for token in diff_line_tokens:
+				if token[0] is "-":
+					if token.find(",") > -1:
+						base_line_number = token.split(",")[0]
+					else:
+						base_line_number = token
 
-def run_diff(blame_hash):
-        parent_hash = get_parent_commit(blame_hash)
+					base_line_number = base_line_number.replace("-", "")
+					break
 
-        print("RUN_DIFF: " + "git diff -M " + parent_hash + " " + blame_hash + " -U0")
-        process = subprocess.Popen(["git", "diff", "-M", parent_hash, blame_hash, "-U0"], stdout=subprocess.PIPE, cwd=dir_path)
+			removal_lines = 0
+			for i, line in enumerate(content_lines):
+				if line:
+					if line[0] is "-":
+						removal_lines += 1
 
-        gitDiff = process.communicate()[0].decode("UTF-8", "replace")
-
-        return gitDiff
-
-def run_blame(fn, ln, head):
-	if head == "HEAD":
-		head_string = head
-	else:
-		head_string = head + "^"
-
-	line_range = str(ln) + "," + str(ln)
-
-	print("git blame -L " + line_range + " -p " + head_string + " -- " + fn)
-
-	process = subprocess.Popen(["git", "blame", "-L", line_range, "-p", head_string, "--", fn], stdout=subprocess.PIPE, cwd=dir_path)
-	git_blame = (process.communicate()[0]).decode("UTF-8", "replace")
-
-	for line in git_blame.splitlines():
-		print(line)
-
-	return git_blame
-
-def get_file_diffs(git_log):
-	file_diffs = { }
-	split_log = git_log.split("diff --git a/")
-	split_log.pop(0)
-
-	for log in split_log:
-		separate_diffs_list = [ ]
-		fileName = log.split()[0]
-		#fileName = fileName.split("/")[-1]
-		
-		# print(fileName)
-		
-		fileDiff = log.split("@@")
-
-		if len(fileDiff) < 2:
-			print("WARN: Invalid Diff Target: " + fileName.split("/")[-1])
-			continue
-
-		for i in range(int(len(fileDiff) / 2)):
-			j = i*2+1
-			separate_diffs_list.append("@@" + fileDiff[j] + "@@" + fileDiff[j + 1])
-
-		file_diffs[fileName] = separate_diffs_list
-
-	return file_diffs
+						if line.find(substring) > -1:
+							print("Traced to: " + blame_hash)
+							
+							return_params['head'] = blame_hash + "^"
+							return_params['file_name'] = diff_file_name
+							return_params['line_number'] = str(int(base_line_number) + removal_lines - 1)
+							return_params['blaming'] = True
+							return return_params
+	
+	return_params['blaming'] = False
+	return return_params
 
 def recursive_blame(file_name, line_number, substring, head):
 	blaming = True
 
 	while blaming:
 		print("==============")
-		print("HEAD : " + head)
-		git_blame = run_blame(file_name, line_number, head)
+		print("Checking : " + head)
+		gitBlame = git_blame(file_name, line_number, head)
 		try:
-			blame_hash = git_blame.split()[0]
+			blame_hash = gitBlame.split()[0]
+			# Refactor later
+			other = re.compile("((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))").split(gitBlame)[1]
+			parent_hash = other.split()[1]
 		except:
 			print("ERROR: Invalid Blame Target")
 			sys.exit(0)
 
-		git_diff_result = run_diff(blame_hash)
+		git_diff_result = git_diff(blame_hash, parent_hash)
 		file_diffs_map = get_file_diffs(git_diff_result)
-
-		#print("git_diff_result: " + git_diff_result)
 
 		sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
 
-		#content_list = file_diffs_map.get(file_name)
+		input_params = {'blame_hash': blame_hash, 
+						'substring': substring}
+		output_params = parse_diffs(input_params, sorted_diffs)
 
-		# for c in content_list:
-		# 	print(c)
+		blaming = output_params['blaming']
+		if blaming:
+			head = output_params['head']
+			file_name = output_params['file_name']
+			line_number = output_params['line_number']
+		# for k, v in output_params:
+		# 	locals()['k'] = v
 
-		blaming = False
-
-		for diff_file_name, content_lines in sorted_diffs.items():
-			for content in content_lines:
-				content_lines = content.split("\n")
-
-				diff_line_tokens = content_lines[0].split(" ")
-
-				base_line_number = -1
-
-				for token in diff_line_tokens:
-					if token[0] is "-":
-						if token.find(",") > -1:
-							base_line_number = token.split(",")[0]
-						else:
-							base_line_number = token
-
-						base_line_number = base_line_number.replace("-", "")
-
-						break
-
-				removal_lines = 0
-
-				for i, line in enumerate(content_lines):
-					if line:
-						if line[0] is "-":
-							removal_lines += 1
-
-							if line.find(substring) > -1:
-								line_number = str(int(base_line_number) + removal_lines - 1)
-								print("Traced back to: " + blame_hash)
-								#head = get_parent_commit(blame_hash)
-								head = blame_hash
-
-								# print("content: " + content)
-								# print("base_line_number: " + str(base_line_number))
-								# print("line number: " + line_number)
-								# print("head: " + head)
-								file_name = diff_file_name
-
-								blaming = True
-								break
-
-				if blaming:
-					break
-
-			if blaming:
-				break
-
+	print("==============")
 	return blame_hash
 
 def main():
@@ -186,13 +170,15 @@ def main():
 	    #line_number = "125"
 	    #substring = "\"allowEmptyOptions=true\""
 
-	    #file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
-	    #line_number = "209"
-	    #substring = "sb.append(StringPool.SPACE)"
+	    # file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
+	    # line_number = "209"
+	    # substring = "sb.append(StringPool.SPACE)"
+	    # EXPECT : b2590ecfa4b8d6cbefdb65c5cc7949a23e33155b
 
 	    file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    line_number = "157"
 	    substring = "rootPortletId"
+	    # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
 
 	    #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
 	    #line_number = "21"
@@ -209,16 +195,15 @@ def main():
 	        print(sys.argv[i])
 	            
 	        if x == "-s" and len(sys.argv) > (i + 1):
-	                substring = sys.argv[i + 1]
-	                break
+	        	substring = sys.argv[i + 1]
+	        	break
 
 	if file_name.find("\\", -1):
 		file_name = file_name.replace("\\", "/")
 
 	head = "HEAD"
-	#print(get_line(file_name, line_number))
 
 	blame_hash = recursive_blame(file_name, line_number, substring, head)
-	print(blame_hash)
+	print("True Blame Commit : " + blame_hash)
 
 main()
