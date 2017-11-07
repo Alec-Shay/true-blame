@@ -19,6 +19,11 @@ def git_diff(blame_hash, parent_hash):
     return git_process("diff", args)
 
 
+def git_rev_parse(hash):
+    args = [hash + "^"]
+    return git_process("rev-parse", args).replace("\n","")
+
+
 def git_process(cmd, *params):
     print("git " + cmd + " " + ' '.join(str(x) for x in params[0]))
 
