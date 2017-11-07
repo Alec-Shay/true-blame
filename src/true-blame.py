@@ -232,7 +232,23 @@ def main():
     head = "HEAD"
     substring = None
 
-    if (len(sys.argv) < 3):
+    help = False
+
+    for x in enumerate(sys.argv):
+    	if x == "--help":
+    		help = True
+    		break
+
+    if help:
+        print("Basic syntax: tb path/to/file/filename.extension line_number <arguments>\n\n")
+
+        print("Arguments:\n")
+        print("\t-s <string>: specify a specific substring of the desired line to search on")
+        print("\t\tnot using -s will use the whole line by default (without leading/trailing whitespace)\n")
+        print("\t-r <start-commit> <end-commit>: search in reverse")
+        print("\t\tstart-commit and  end-commit are assumed HEAD by default")
+        sys.exit(0)
+    elif (len(sys.argv) < 3):
         print("Filename: ", end="", flush=True)
         file_name = input()
         print("Line Number: ", end="", flush=True)
