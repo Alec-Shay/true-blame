@@ -1,7 +1,14 @@
 #!/bin/bash
 
 tb() {
-		python "$(dirname "${BASH_SOURCE[0]}")/true-blame.py" || py "$(dirname "${BASH_SOURCE[0]}")/true-blame.py"
+	if (command -v py) > 0;
+	then
+
+		py "$(dirname "${BASH_SOURCE[0]}")/true-blame.py" "$@"
+	elif (command -v python) > 0;
+	then
+		python "$(dirname "${BASH_SOURCE[0]}")/true-blame.py" "$@"
+	fi
 }
 
-tb $@
+tb "$@"
