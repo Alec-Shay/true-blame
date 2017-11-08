@@ -10,12 +10,18 @@
 
 ## Parameters
 
+- `-q` : only print result
+   - False by default
+
 - `-s <string>` : specify a specific substring to search on
-   - *string* : defaults to the entire line without leading or trailing whitespace
+   - *string* : entire line without leading or trailing whitespace by default
 
 - `-r <start-commit> <end-commit>` : search in reverse
-   - *start-commit* : defaults to HEAD
-   - *end-commit* : defaults to HEAD
+   - *start-commit* : HEAD by default
+   - *end-commit* : HEAD by default
+
+- `-gitk` : open gitk on result hash
+   - False by default
 
 ## Installation
 1. Install Python 3

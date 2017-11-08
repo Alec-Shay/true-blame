@@ -6,7 +6,7 @@ import sys
 dir_path = os.getcwd()
 reverse = False
 reverse_end_point = "HEAD"
-verbose = False
+quiet = False
 
 
 def git_blame(file_name, line_number, head):
@@ -196,7 +196,7 @@ def recursive_blame(file_name, line_number, substring, head):
     while blaming:
         if verbose:
             print("==============")
-        print("\nChecking : " + head)
+            print("\nChecking : " + head)
         current_blame = git_blame(file_name, line_number, head)
 
         try:
@@ -244,7 +244,7 @@ def recursive_blame(file_name, line_number, substring, head):
 def main():
     global reverse
     global reverse_end_point
-    global verbose
+    global quiet
 
     head = "HEAD"
     gitk = False
@@ -252,14 +252,22 @@ def main():
 
     if "--help" in sys.argv:
         print("Usage: ")
-        print("\ttb path/to/file/filename.extension line_number <arguments>\n\n")
+        print("\ttb path/to/file/filename.extension line_number <arguments>")
 
-        print("Arguments:\n")
-        print("\t-s <string>: specify a specific substring to search on")
-        print("\t\tdefaults to entire line without leading or trailing whitespace\n")
-        print("\t-r <start-commit> <end-commit>: search in reverse")
-        print("\t\tstart-commit defaults to HEAD")
-        print("\t\tend-commit defaults to HEAD")
+        print("\n\nArguments:")
+        print("\n\t-q: only print result")
+        print("\t\tFalse by default")
+
+        print("\n\t-s <string>: specify a specific substring to search on")
+        print("\t\t<string> entire line without leading or trailing whitespace by default")
+
+        print("\n\t-r <start-commit> <end-commit>: search in reverse")
+        print("\t\t<start-commit> HEAD by default")
+        print("\t\t<end-commit> HEAD by default")
+
+        print("\n\t-gitk: open gitk on result hash")
+        print("\t\tFalse by default")
+
         sys.exit(0)
     elif (len(sys.argv) < 3):
         print("Filename: ", end="", flush=True)
@@ -282,8 +290,8 @@ def main():
         file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
         line_number = "157"
         substring = "rootPortletId"
-        verbose = True
-        gitk = True
+        # quiet = True
+        # gitk = True
         # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
 
         #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
@@ -315,8 +323,8 @@ def main():
                 if len(sys.argv) > (i + 2) and sys.argv[i + 2][0] is not "-":
                     reverse_end_point = sys.argv[i + 2]
 
-            if x == "-v" or x == "-verbose":
-                verbose = True
+            if x == "-q" or x == "-quiet":
+                quiet = True
 
     try:
         file_name = file_name.strip()
