@@ -46,7 +46,7 @@ def open_gitk(commit_hash):
 
 def run_process(output, program, cmd, *params):
     if not quiet:
-        print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]))
+        print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]), flush=True)
 
     args = [program] + [cmd] + params[0]
     process = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=dir_path)
@@ -88,7 +88,7 @@ def get_file_diffs(git_log):
         file_diff = log.split("\n@@")
 
         if len(file_diff) < 1:
-            print("WARN: Invalid Diff Target: " + file_name.split("/")[-1])
+            print("WARN: Invalid Diff Target: " + file_name.split("/")[-1], flush=True)
             continue
 
         for x in file_diff:
@@ -201,7 +201,7 @@ def parse_diffs(input_params, sorted_diffs):
 
                         if line.find(substring) > -1:
                             if not quiet:
-                                print("Traced to: " + blame_hash)
+                                print("Traced to: " + blame_hash, flush=True)
                             line_number = int(base_line_number) + relevant_lines
 
                             if reverse:
@@ -223,7 +223,8 @@ def recursive_blame(file_name, line_number, substring, head):
 
     while blaming:
         if not quiet:
-            print("==============")
+            print("==============", flush=True)
+            print("Checking: " + head.replace("^",""), flush=True)
         current_blame = git_blame(file_name, line_number, head)
 
         try:
@@ -268,9 +269,9 @@ def recursive_blame(file_name, line_number, substring, head):
 
 
 def main():
+    global quiet
     global reverse
     global reverse_end_point
-    global quiet
 
     head = "HEAD"
     gitk = False
@@ -317,7 +318,7 @@ def main():
         line_number = "157"
         substring = "rootPortletId"
         # quiet = True
-        gitk = True
+        # gitk = True
         # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
 
         #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
@@ -360,7 +361,7 @@ def main():
             file_name = file_name.replace("\\", "/")
 
         if not re.compile('^[^\s\"\'\.]+(\.)[a-z]{1,6}$').match(file_name):
-            print("INFO: " + file_name)
+            print("INFO: " + file_name, flush=True)
 
         if not re.compile(r'^[0-9]+$').match(line_number):
             raise Exception()
