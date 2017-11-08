@@ -27,7 +27,7 @@
 
 ## IntelliJ 
 
-#### Setup
+### Setup
 
 1. After cloning the `true-blame` repository, in IntelliJ, navigate to `File` -> `Settings`.
 2. Add a new external tool under `Tools` -> `External Tools`.
@@ -46,7 +46,7 @@ Now you can run True Blame from IntelliJ by using the right-click context menu f
 
 <a name="intellijusage" />
 
-#### Usage
+### Usage
 
 Select the desired text and right-click, then under External Tools click True Blame.
 
@@ -67,7 +67,7 @@ The following example uses $Prompt$ to use additional parameters and escape quot
 
 ## Alias
 
-#### Setup
+### Setup
 
 Add this section to .bash_aliases (or the equivalent on whichever shell you're using) which calls the script.  Ensure /path/to/clone/location is modified to be wherever you've cloned the repository.
 
@@ -88,6 +88,6 @@ Substring (default: exact line): rootPortletId
 
 <a name="aliasusage" />
 
-#### Usage
+### Usage
 
 ```tb path/to/file/filename.extension line_number arguments```

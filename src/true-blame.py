@@ -71,7 +71,12 @@ def get_file_diffs(git_log):
     file_diffs = {}
     # Refactor later (split)
     file_separator_regex = "^diff --git a/"
-    split_log = re.compile(file_separator_regex).split(git_log)
+
+    # ^(diff --git a\/)
+    # (["\n"]+(diff --git a\/))
+
+    # split_log = re.compile(file_separator_regex).split(git_log)
+    split_log = git_log.split("diff --git a/")
     split_log.pop(0)
 
     for log in split_log:
