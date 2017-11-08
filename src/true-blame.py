@@ -165,9 +165,9 @@ def parse_diffs(input_params, sorted_diffs):
                             line_number = int(base_line_number) + relevant_lines
 
                             if reverse:
-                            	return_params['head'] = blame_hash
+                                return_params['head'] = blame_hash
                             else:
-                            	return_params['head'] = blame_hash + "^"
+                                return_params['head'] = blame_hash + "^"
 
                             return_params['file_name'] = diff_file_name
                             return_params['line_number'] = str(line_number)
@@ -204,7 +204,7 @@ def recursive_blame(file_name, line_number, substring, head):
                 except:
                     return current_blame
         except:
-            print("ERROR: Invalid commit for git blame.")
+            print("ERROR: Invalid Blame Commit.")
             sys.exit(0)
 
         git_diff_result = git_diff(blame_hash, parent_hash)
@@ -221,8 +221,6 @@ def recursive_blame(file_name, line_number, substring, head):
             head = output_params['head']
             file_name = output_params['file_name']
             line_number = output_params['line_number']
-        # for k, v in output_params:
-        #     locals()['k'] = v
 
     if reverse:
         current_blame = fix_current_blame_with_hash(current_blame, blame_hash)
@@ -237,14 +235,7 @@ def main():
     head = "HEAD"
     substring = None
 
-    help = False
-
-    for x in enumerate(sys.argv):
-    	if x == "--help":
-    		help = True
-    		break
-
-    if help:
+    if "--help" in sys.argv:
         print("Basic syntax: tb path/to/file/filename.extension line_number <arguments>\n\n")
 
         print("Arguments:\n")
@@ -335,7 +326,7 @@ def main():
         print("Filename: " + file_name)
         print("Line Number: " + line_number)
 
-        print("ERROR: INVALID PARAMETERS")
+        print("ERROR: Invalid Parameters.")
         print("Exiting.")
 
         sys.exit(0)
@@ -343,7 +334,7 @@ def main():
     if substring is None:
         substring = get_line(file_name, line_number).strip()
     elif substring.find("\n") > -1:
-        print("ERROR: Mulitple blame lines selected.")
+        print("ERROR: Mulitple Lines Selected.")
         print("Exiting.")
 
         sys.exit(0)
