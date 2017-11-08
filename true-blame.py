@@ -314,9 +314,9 @@ def main():
         # substring = "sb.append(StringPool.SPACE)"
         # EXPECT : b2590ecfa4b8d6cbefdb65c5cc7949a23e33155b
 
-        file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-        line_number = "157"
-        substring = "rootPortletId"
+        #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
+        #line_number = "157"
+        #substring = "rootPortletId"
         # quiet = True
         # gitk = True
         # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
@@ -328,6 +328,13 @@ def main():
         #file_name = "portal-impl/src/com/liferay/portal/util/PortalImpl.java"
         #line_number = "317"
         #substring = "class Portal"
+
+        #file_name = "src/true-blame.py"
+        #line_number = "149"
+        #substring = "removal_lines"
+        #reverse = True
+        #head = b00428aa730944f2b08109d00376b5c9422943ca
+        #reverse_end_point = f5c6a52bacebf81b81dace9e6491b29a8cf693e1
     else:
         file_name = sys.argv[1]
         line_number = sys.argv[2]
