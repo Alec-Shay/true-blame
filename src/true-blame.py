@@ -236,7 +236,8 @@ def main():
     substring = None
 
     if "--help" in sys.argv:
-        print("Basic syntax: tb path/to/file/filename.extension line_number <arguments>\n\n")
+        print("Usage: ")
+        print("\ttb path/to/file/filename.extension line_number <arguments>\n\n")
 
         print("Arguments:\n")
         print("\t-s <string>: specify a specific substring of the desired line to search on")
@@ -251,23 +252,6 @@ def main():
         line_number = input()
         print("Substring (default: exact line): ", flush=True)
         substring = input()
-
-        print("Reverse? (Y/N) ", end="", flush=True)
-        reverse_string = input()
-        reverse = reverse_string[0] is "Y" or reverse_string[0] is "y"
-
-        if reverse:
-            print("Starting Hash (default: HEAD): ", end="", flush=True)
-            head = input()
-
-            if head is None:
-                head = "HEAD"
-
-            print("Ending Hash (default: HEAD): ", end="", flush=True)
-            reverse_end_point = input()
-
-            if reverse_end_point is None:
-                reverse_end_point = "HEAD"
 
         # FOR TESTING
         #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
