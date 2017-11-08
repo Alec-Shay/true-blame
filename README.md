@@ -1,9 +1,12 @@
 ### Contents
 - [Parameters](#parameters)
 - [Installation](#installation)
-- [IntelliJ](#intellij)
-    - [Usage notes](#intellijusage)
-- [Alias](#alias)
+- [IntelliJ](#intellijsetup)
+    - [Setup](#intellijsetup)
+    - [Usage](#intellijusage)
+- [Alias](#aliassetup)
+	- [Setup](#aliassetup)
+	- [Usage](#aliasusage)
 
 ## Parameters
 
@@ -20,9 +23,11 @@
 2. Clone this repository : 
 `git@github.com/alec-shay/true-blame.git`
 
-<a name="intellij" />
+<a name="intellijsetup" />
 
-## IntelliJ Setup
+## IntelliJ 
+
+#### Setup
 
 1. After cloning the `true-blame` repository, in IntelliJ, navigate to `File` -> `Settings`.
 2. Add a new external tool under `Tools` -> `External Tools`.
@@ -41,23 +46,29 @@ Now you can run True Blame from IntelliJ by using the right-click context menu f
 
 <a name="intellijusage" />
 
-### IntelliJ Usage Notes:
+#### Usage
 
 Select the desired text and right-click, then under External Tools click True Blame.
 
 ![Right-click context screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/SampleIntelliJUse.png)
 
-- **Warning: IntelliJ removes quotation marks.**  For selected text with quotes (`message.getString("className")`) make use of an External Tool with a $Prompt$ parameter instead.  You can use the program as before except input the desired substring with quotes escaped (`"message.getString(\"className\")"`.
 
-To allow for more flexible parameters (including selected text with quotes), add another External Tool with the following for Parameters:
+- **Warning: IntelliJ `$SelectedText$` removes quotation marks.**  
+
+To allow for more flexible parameters (including selected text with quotes), create another External Tool with the following Parameters:
    - /path/to/true-blame.py $FileRelativePath$ $LineNumber$ $Prompt$
+
+The following example uses $Prompt$ to use additional parameters and escape quotes.  We pass in a substring (`-s`) with escaped quotes (`"SCOPE_ID_GROUP_PREFIX = \"Group_\""`) and the True Blame reverse (`-r`) starting hash (`23b974b`).
    
 ![Right-click prompt screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/SampleIntelliJPrompt.png)
    
 
-<a name="alias" />
+<a name="aliassetup" />
 
-## Alias Setup
+## Alias
+
+#### Setup
+
 Add this section to .bash_aliases (or the equivalent on whichever shell you're using) which calls the script.  Ensure /path/to/clone/location is modified to be wherever you've cloned the repository.
 
 ```bash
@@ -75,6 +86,8 @@ Line Number: 157
 Substring (default: exact line): rootPortletId
 ```
 
-### Usage:
+<a name="aliasusage" />
+
+#### Usage
 
 ```tb path/to/file/filename.extension line_number arguments```
