@@ -70,14 +70,16 @@ def get_line(file_name, line_number):
 def get_file_diffs(git_log):
     file_diffs = {}
     # Refactor later (split)
-    file_separator_regex = "^diff --git a/"
+    file_separator_regex = "(^|\n)diff --git a\/"
 
     # ^(diff --git a\/)
     # (["\n"]+(diff --git a\/))
 
-    # split_log = re.compile(file_separator_regex).split(git_log)
-    split_log = git_log.split("diff --git a/")
+    split_log = re.compile(file_separator_regex).split(git_log)
+    #split_log = git_log.split("diff --git a/")
     split_log.pop(0)
+
+    split_log = [x for x in split_log if x.strip()]
 
     for log in split_log:
         separate_diffs_list = []
@@ -108,6 +110,10 @@ def get_blame_parent(blame_hash, blame):
         parent_hash = other.split()[1]
 
     return parent_hash
+
+
+def open_gitk(commit_hash):
+	process = subprocess.Popen(["gitk", commit_hash], stdout=subprocess.PIPE, cwd=dir_path)
 
 
 def sort_file_diffs(diffs, file_name):
@@ -202,12 +208,12 @@ def recursive_blame(file_name, line_number, substring, head):
                 try:
                     blame_hash = ancestry[-1]
                 except:
-                    return current_blame
+                    return { blame_hash : current_blame }
             else:
                 try:
                     parent_hash = get_blame_parent(blame_hash, current_blame)
                 except:
-                    return current_blame
+                    return { blame_hash : current_blame }
         except:
             print("ERROR: Invalid Blame Commit.")
             sys.exit(0)
@@ -230,7 +236,7 @@ def recursive_blame(file_name, line_number, substring, head):
     if reverse:
         current_blame = fix_current_blame_with_hash(current_blame, blame_hash)
 
-    return current_blame
+    return { blame_hash : current_blame }
 
 
 def main():
@@ -239,6 +245,7 @@ def main():
 
     head = "HEAD"
     substring = None
+    gitk = False
 
     if "--help" in sys.argv:
         print("Usage: ")
@@ -291,6 +298,9 @@ def main():
             if x == "-s" and len(sys.argv) > (i + 1):
                 substring = sys.argv[i + 1]
 
+            if x == "-gitk":
+                gitk = True
+
             if x == "-r":
                 reverse = True
     
@@ -324,13 +334,18 @@ def main():
     if substring is None:
         substring = get_line(file_name, line_number).strip()
     elif substring.find("\n") > -1:
-        print("ERROR: Mulitple Lines Selected.")
+        print("ERROR: Multiple Lines Selected.")
         print("Exiting.")
 
         sys.exit(0)
 
     blame = recursive_blame(file_name, line_number, substring, head)
+    blame_hash = list(blame.keys())[0]
+
     print("==============")
-    print("True Blame : \n" + blame)
+    print("True Blame : \n" + blame[blame_hash])
+
+    if gitk:
+        open_gitk(blame_hash)
 
 main()
