@@ -6,8 +6,9 @@ import sys
 dir_path = os.getcwd()
 reverse = False
 reverse_end_point = "HEAD"
+verbose = False
 
-# GIT
+
 def git_blame(file_name, line_number, head):
     line_range = str(line_number) + "," + str(line_number)
 
@@ -16,34 +17,39 @@ def git_blame(file_name, line_number, head):
     else:
         args = ["-L", line_range, "-p", head, "--", file_name]
 
-    return git_process("blame", args)
+    return run_process(True, "git", "blame", args)
 
 
 def git_diff(blame_hash, parent_hash):
     args = ["-M", parent_hash, blame_hash, "-U0"]
-    return git_process("diff", args)
+    return run_process(True, "git", "diff", args)
 
 
 def git_rev_parse(hash):
     args = [hash + "^"]
-    return git_process("rev-parse", args).replace("\n","")
+    return run_process(True, "git", "rev-parse", args).replace("\n","")
 
 
 def git_rev_list_with_ancestry_path(commit_hash):
     args = ["--ancestry-path", commit_hash + ".." + reverse_end_point]
-    return git_process("rev-list", args)
+    return run_process(True, "git", "rev-list", args)
 
 
-def git_process(cmd, *params):
-    print("git " + cmd + " " + ' '.join(str(x) for x in params[0]))
+def open_gitk(commit_hash):
+    run_process(False, "gitk", commit_hash, [])
 
-    args = ["git"] + [cmd] + params[0]
+
+def run_process(output, program, cmd, *params):
+    if verbose:
+        print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]))
+
+    args = [program] + [cmd] + params[0]
     process = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=dir_path)
 
-    return process.communicate()[0].decode("UTF-8", "replace")
+    if output:
+        return process.communicate()[0].decode("UTF-8", "replace")
 
 
-# UTIL
 def fix_current_blame_with_hash(blame, hash):
     blame_lines = blame.splitlines()
 
@@ -112,10 +118,6 @@ def get_blame_parent(blame_hash, blame):
     return parent_hash
 
 
-def open_gitk(commit_hash):
-	process = subprocess.Popen(["gitk", commit_hash], stdout=subprocess.PIPE, cwd=dir_path)
-
-
 def sort_file_diffs(diffs, file_name):
     sorted_diffs = {}
     sorted_diffs[file_name] = "temp"
@@ -137,7 +139,6 @@ def sort_file_diffs(diffs, file_name):
     return sorted_diffs
 
 
-# CONTROL
 def parse_diffs(input_params, sorted_diffs):
     return_params = {}
     blame_hash = input_params['blame_hash']
@@ -193,8 +194,9 @@ def recursive_blame(file_name, line_number, substring, head):
     blaming = True
 
     while blaming:
-        print("==============")
-        print("Checking : " + head)
+        if verbose:
+            print("==============")
+        print("\nChecking : " + head)
         current_blame = git_blame(file_name, line_number, head)
 
         try:
@@ -242,10 +244,11 @@ def recursive_blame(file_name, line_number, substring, head):
 def main():
     global reverse
     global reverse_end_point
+    global verbose
 
     head = "HEAD"
-    substring = None
     gitk = False
+    substring = None
 
     if "--help" in sys.argv:
         print("Usage: ")
@@ -279,6 +282,8 @@ def main():
         file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
         line_number = "157"
         substring = "rootPortletId"
+        verbose = True
+        gitk = True
         # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
 
         #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
@@ -301,7 +306,7 @@ def main():
             if x == "-gitk":
                 gitk = True
 
-            if x == "-r":
+            if x == "-r" or x == "-reverse":
                 reverse = True
     
                 if len(sys.argv) > (i + 1) and sys.argv[i + 1][0] is not "-":
@@ -309,6 +314,9 @@ def main():
 
                 if len(sys.argv) > (i + 2) and sys.argv[i + 2][0] is not "-":
                     reverse_end_point = sys.argv[i + 2]
+
+            if x == "-v" or x == "-verbose":
+                verbose = True
 
     try:
         file_name = file_name.strip()
