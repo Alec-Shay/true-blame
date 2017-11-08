@@ -70,7 +70,8 @@ def get_line(file_name, line_number):
 def get_file_diffs(git_log):
     file_diffs = {}
     # Refactor later (split)
-    split_log = git_log.split("diff --git a/")
+    file_separator_regex = "^diff --git a/"
+    split_log = re.compile(file_separator_regex).split(git_log)
     split_log.pop(0)
 
     for log in split_log:
@@ -163,7 +164,11 @@ def parse_diffs(input_params, sorted_diffs):
                             print("Traced to: " + blame_hash)
                             line_number = int(base_line_number) + relevant_lines
 
-                            return_params['head'] = blame_hash + "^"
+                            if reverse:
+                            	return_params['head'] = blame_hash
+                            else:
+                            	return_params['head'] = blame_hash + "^"
+
                             return_params['file_name'] = diff_file_name
                             return_params['line_number'] = str(line_number)
                             return_params['blaming'] = True
