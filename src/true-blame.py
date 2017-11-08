@@ -90,17 +90,14 @@ def get_file_diffs(git_log):
     for log in split_log:
         separate_diffs_list = []
         file_name = log.split()[0]
-        file_diff = log.split("@@")
+        file_diff = log.split("\n@@")
 
-        if len(file_diff) < 2:
+        if len(file_diff) < 1:
             print("WARN: Invalid Diff Target: " + file_name.split("/")[-1])
             continue
 
-        half = int(len(file_diff) / 2)
-        for i in range(half):
-            j = (i*2) + 1
-            separate_diffs_list.append("@@" + file_diff[j] +
-                                       "@@" + file_diff[j + 1])
+        for x in file_diff:
+            separate_diffs_list.append("@@" + x)
 
         file_diffs[file_name] = separate_diffs_list
 
