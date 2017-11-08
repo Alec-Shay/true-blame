@@ -245,17 +245,18 @@ def main():
         print("\ttb path/to/file/filename.extension line_number <arguments>\n\n")
 
         print("Arguments:\n")
-        print("\t-s <string>: specify a specific substring of the desired line to search on")
-        print("\t\tnot using -s will use the whole line by default (without leading/trailing whitespace)\n")
+        print("\t-s <string>: specify a specific substring to search on")
+        print("\t\tdefaults to entire line without leading or trailing whitespace\n")
         print("\t-r <start-commit> <end-commit>: search in reverse")
-        print("\t\tstart-commit and  end-commit are assumed HEAD by default")
+        print("\t\tstart-commit defaults to HEAD")
+        print("\t\tend-commit defaults to HEAD")
         sys.exit(0)
     elif (len(sys.argv) < 3):
         print("Filename: ", end="", flush=True)
         file_name = input()
         print("Line Number: ", end="", flush=True)
         line_number = input()
-        print("Substring (default: exact line): ", flush=True)
+        print("String: ", flush=True)
         substring = input()
 
         # FOR TESTING

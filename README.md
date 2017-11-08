@@ -10,12 +10,12 @@
 
 ## Parameters
 
-- `-s <string>` : specify a specific substring of the desired line to search on
-   - not using `-s` will use the whole line by default (without leading/trailing whitespace)
+- `-s <string>` : specify a specific substring to search on
+   - *string* : defaults to the entire line without leading or trailing whitespace
 
 - `-r <start-commit> <end-commit>` : search in reverse
-   - start-commit and end-commit are assumed HEAD by default
-
+   - *start-commit* : defaults to HEAD
+   - *end-commit* : defaults to HEAD
 
 ## Installation
 1. Install Python 3
@@ -53,12 +53,14 @@ Select the desired text and right-click, then under External Tools click True Bl
 ![Right-click context screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/SampleIntelliJUse.png)
 
 
-- **Warning: IntelliJ `$SelectedText$` removes quotation marks.**  
+**Warning: IntelliJ `$SelectedText$` removes quotation marks.**  
 
-To allow for more flexible parameters (including selected text with quotes), create another External Tool with the following Parameters:
+To allow text with quotes as well as utilize additional parameters, create another External Tool with the following Parameters:
    - /path/to/true-blame.py $FileRelativePath$ $LineNumber$ $Prompt$
 
-The following example uses $Prompt$ to use additional parameters and escape quotes.  We pass in a substring (`-s`) with escaped quotes (`"SCOPE_ID_GROUP_PREFIX = \"Group_\""`) and the True Blame reverse (`-r`) starting hash (`23b974b`).
+![Right-click prompt screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/IntelliJPromptParameters.png)
+
+The following example uses prompt to pass in a substring of text (with escaped quotes) and True Blame reverse starting hash : `-s "SCOPE_ID_GROUP_PREFIX = \"Group_\"" -r 23b974b`.
    
 ![Right-click prompt screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/SampleIntelliJPrompt.png)
    
@@ -83,7 +85,7 @@ To run, type `tb` and enter the file name, line number, and substring when promo
 ```
 Filename: modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java
 Line Number: 157
-Substring (default: exact line): rootPortletId
+String: rootPortletId
 ```
 
 <a name="aliasusage" />
