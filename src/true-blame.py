@@ -40,7 +40,7 @@ def open_gitk(commit_hash):
 
 
 def run_process(output, program, cmd, *params):
-    if verbose:
+    if not quiet:
         print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]))
 
     args = [program] + [cmd] + params[0]
@@ -170,7 +170,8 @@ def parse_diffs(input_params, sorted_diffs):
                         relevant_lines += 1
 
                         if line.find(substring) > -1:
-                            print("Traced to: " + blame_hash)
+                            if not quiet:
+                                print("Traced to: " + blame_hash)
                             line_number = int(base_line_number) + relevant_lines
 
                             if reverse:
@@ -191,9 +192,8 @@ def recursive_blame(file_name, line_number, substring, head):
     blaming = True
 
     while blaming:
-        if verbose:
+        if not quiet:
             print("==============")
-            print("\nChecking : " + head)
         current_blame = git_blame(file_name, line_number, head)
 
         try:
@@ -288,7 +288,7 @@ def main():
         line_number = "157"
         substring = "rootPortletId"
         # quiet = True
-        # gitk = True
+        gitk = True
         # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
 
         #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
