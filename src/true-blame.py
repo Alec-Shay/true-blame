@@ -25,6 +25,11 @@ def git_diff(blame_hash, parent_hash):
     return run_process(True, "git", "diff", args)
 
 
+def git_log(commit_hash):
+	args = ["-1", commit_hash]
+	return run_process(True, "git", "log", args)
+
+
 def git_rev_parse(hash):
     args = [hash + "^"]
     return run_process(True, "git", "rev-parse", args).replace("\n","")
@@ -49,16 +54,6 @@ def run_process(output, program, cmd, *params):
     if output:
         return process.communicate()[0].decode("UTF-8", "replace")
 
-
-def fix_current_blame_with_hash(blame, hash):
-    blame_lines = blame.splitlines()
-
-    new_blame = hash + blame_lines[0][blame_lines[0].find(" "):]
-
-    for i, x in enumerate(blame_lines):
-        new_blame += "\n" + x
-
-    return new_blame
 
 def get_line(file_name, line_number):
     file = open(dir_path + "/" + file_name)
@@ -102,6 +97,41 @@ def get_file_diffs(git_log):
         file_diffs[file_name] = separate_diffs_list
 
     return file_diffs
+
+
+def get_result_info(blame, hash):
+	blame_lines = blame.splitlines()
+	log_info_lines = git_log(hash).splitlines()
+
+	blame_line_info = blame_lines[0].split()
+
+	new_info_set = "Commit: " + hash
+
+	for line in log_info_lines:
+		if line.startswith("Date:") or line.startswith("Author:"):
+			new_info_set += "\n" + line
+
+	new_info_set += "\nSummary: "
+
+	for i in range(4, len(log_info_lines)):
+		new_info_set += log_info_lines[i].strip() + "\n"
+
+	for i in range(0, len(blame_lines)):
+		if blame_lines[i].startswith("filename"):
+			if reverse:
+				new_info_set += "\nPreviously found in file:"
+			else:
+				new_info_set += "\nIntroduced in file:"
+
+			new_info_set += blame_lines[i][blame_lines[i].find(" "):]
+
+			break
+
+	new_info_set += "\nOn line: " + blame_line_info[1] + "\n\n"
+
+	new_info_set += blame_lines[-1]
+
+	return new_info_set
 
 
 def get_blame_parent(blame_hash, blame):
@@ -207,10 +237,10 @@ def recursive_blame(file_name, line_number, substring, head):
                 try:
                     blame_hash = ancestry[-1]
                 except:
-                    return { blame_hash : current_blame }
+                    return { blame_hash : get_result_info(current_blame, blame_hash) }
             else:
                 try:
-                    parent_hash = get_blame_parent(blame_hash, current_blame)
+                    parent_hash = get_blame_parent(blame_hash, get_result_info(current_blame, blame_hash))
                 except:
                     return { blame_hash : current_blame }
         except:
@@ -232,10 +262,9 @@ def recursive_blame(file_name, line_number, substring, head):
             file_name = output_params['file_name']
             line_number = output_params['line_number']
 
-    if reverse:
-        current_blame = fix_current_blame_with_hash(current_blame, blame_hash)
+    result_info = get_result_info(current_blame, blame_hash)
 
-    return { blame_hash : current_blame }
+    return { blame_hash : result_info }
 
 
 def main():
@@ -356,7 +385,7 @@ def main():
     blame_hash = list(blame.keys())[0]
 
     print("==============")
-    print("True Blame : \n" + blame[blame_hash])
+    print("True Blame: \n\n" + blame[blame_hash])
 
     if gitk:
         open_gitk(blame_hash)
