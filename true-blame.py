@@ -333,8 +333,6 @@ def main():
         line_number = sys.argv[2]
 
         for i, x in enumerate(sys.argv):
-            print(sys.argv[i])
-
             if x == "-s" and len(sys.argv) > (i + 1):
                 substring = sys.argv[i + 1]
 
