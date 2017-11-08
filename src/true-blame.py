@@ -240,9 +240,9 @@ def recursive_blame(file_name, line_number, substring, head):
                     return { blame_hash : get_result_info(current_blame, blame_hash) }
             else:
                 try:
-                    parent_hash = get_blame_parent(blame_hash, get_result_info(current_blame, blame_hash))
+                    parent_hash = get_blame_parent(blame_hash, current_blame)
                 except:
-                    return { blame_hash : current_blame }
+                    return { blame_hash : get_resut_info(current_blame, blame_hash) }
         except:
             print("ERROR: Invalid Blame Commit.")
             sys.exit(0)
