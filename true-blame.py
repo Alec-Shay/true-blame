@@ -13,7 +13,7 @@ def git_blame(file_name, line_number, head):
     line_range = str(line_number) + "," + str(line_number)
 
     if reverse:
-        args = ["-L", line_range, "-p", "--reverse", head, "--", file_name]
+        args = ["-L", line_range, "-p", "--reverse", head + ".." + reverse_end_point, "--", file_name]
     else:
         args = ["-L", line_range, "-p", head, "--", file_name]
 
@@ -25,8 +25,8 @@ def git_diff(blame_hash, parent_hash):
     return run_process(True, "git", "diff", args)
 
 
-def git_log(commit_hash):
-	args = ["-1", commit_hash]
+def git_log(commit):
+	args = ["-1", commit]
 	return run_process(True, "git", "log", args)
 
 
@@ -388,5 +388,13 @@ def main():
 
     if gitk:
         open_gitk(blame_hash)
+
+    if reverse:
+        quiet = True
+
+        reverse_end_point_hash = git_log(reverse_end_point).split()[1]
+
+        if reverse_end_point_hash == blame_hash:
+            print("\nThis commit is the last in the specified range. The line may not have been removed!")
 
 main()
