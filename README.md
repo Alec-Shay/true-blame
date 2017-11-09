@@ -25,6 +25,8 @@
 
 - `-gitk` : open gitk on result hash
    - False by default
+   
+- `--help` : show usage details
 
 ## Installation
 1. Install Python 3

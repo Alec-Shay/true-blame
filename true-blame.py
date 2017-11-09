@@ -297,7 +297,7 @@ def main():
     gitk = False
     substring = None
 
-    if "--help" in sys.argv:
+    if "--help" in sys.argv or "-help" in sys.argv:
         print("Usage: ")
         print("\ttb path/to/file/filename.extension line_number <arguments>")
 
