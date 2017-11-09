@@ -16,6 +16,9 @@
 - `-r <start-commit> <end-commit>` : search in reverse
    - *start-commit* : HEAD by default
    - *end-commit* : HEAD by default
+   
+- `-ic` : ignore case when searching
+   - False by default
 
 - `-q` : only print the result
    - False by default

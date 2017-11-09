@@ -309,6 +309,9 @@ def main():
         print("\t\t<start-commit> HEAD by default")
         print("\t\t<end-commit> HEAD by default")
 
+        print("\n\t-ic: ignore case when searching")
+        print("\t\tFalse by default")
+
         print("\n\t-q: only print the result")
         print("\t\tFalse by default")
 
