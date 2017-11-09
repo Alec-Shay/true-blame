@@ -3,17 +3,21 @@ import re
 import subprocess
 import sys
 
-#PATH_TO_TRUE_BLAME
-run_path = "C:\\Users\\liferay\\Desktop\\me\\true-blame\\true-blame.py"
+#PATH_TO_TRUE_BLAME_PROJECT
+# run_path = "C:\\Users\\liferay\\Desktop\\me\\true-blame"
+run_path = os.environ['TB_PATH']
 
 #PATH_TO_LIFERAY_REPO
-repo_path = "C:\\Users\\liferay\\Desktop\\Repos\\liferay-portal"
+# repo_path = "C:\\Users\\liferay\\Desktop\\Repos\\liferay-portal"
+repo_path = os.environ['LIFERAY_PATH']
 
 def main():
-    
+    global run_path
+    run_path = run_path + "\\true-blame.py"
+
     expected = "23b974bc9510a06d2a359301c1d12fab4aa61cc5"
     file_path = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-    line_number = "157"
+    line_number = "158"
     substring = "rootPortletId"
     
     args = [file_path, line_number, "-s", substring]
@@ -40,6 +44,9 @@ def main():
 
 
 def run_test(args, expected):
+    global run_path
+    global repo_path
+
     process = subprocess.Popen(["py", run_path] + args, cwd=repo_path, stdout=subprocess.PIPE, shell=True)
     result = process.communicate()[0].decode("UTF-8", "replace")
 
