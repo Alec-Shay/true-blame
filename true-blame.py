@@ -44,26 +44,6 @@ def open_gitk(commit_hash):
     run_process(False, "gitk", commit_hash, [])
 
 
-def parse_file_rename(diff):
-	rename_from = None
-	rename_to = None
-
-	for line in diff.splitlines():
-		if line.startswith("rename from "):
-			rename_from = line.replace("rename from ", "")
-
-		if line.startswith("rename to "):
-			rename_to = line.replace("rename to ", "")
-
-			if rename_from is not None:
-				break
-
-	if rename_from is None or rename_to is None:
-		return None
-
-	return {rename_from : rename_to}
-
-
 def run_process(output, program, cmd, *params):
     if not quiet:
         print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]), flush=True)
