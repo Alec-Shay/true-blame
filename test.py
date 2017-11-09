@@ -23,6 +23,11 @@ def main():
     args = [file_path, line_number, "-s", substring]
     run_test(args, expected)
 
+    expected = "f63004e3489b5eef95a67612dfbc93552d311650"
+
+    args = [file_path, line_number, "-s", substring, "-ic"]
+    run_test(args, expected)
+
     expected = "b2590ecfa4b8d6cbefdb65c5cc7949a23e33155b"
     file_path = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
     line_number = "209"
@@ -35,6 +40,30 @@ def main():
     file_path = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
     line_number = "15" 
     substring = "com.liferay.dynamic.data.mapping.type.text"
+
+    args = [file_path, line_number, "-s", substring]
+    run_test(args, expected)
+
+    expected = "6ba980b887bfd463168c6788d91032c4233f6862"
+    file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
+    line_number = "125"
+    substring = "\"allowEmptyOptions=true\""
+
+    args = [file_path, line_number, "-s", substring]
+    run_test(args, expected)
+
+    expected = "2e0dcf0783ee0c2a779016838b03cc65e71ac387"
+    file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
+    line_number = "21"
+    substring = "AssetEntry"
+
+    args = [file_path, line_number, "-s", substring]
+    run_test(args, expected)
+
+    expected = "70489a1cbbd9919120c7f10dff8d57e2b4187bb6"
+    file_name = "portal-impl/src/com/liferay/portal/util/PortalImpl.java"
+    line_number = "317"
+    substring = "class Portal"
 
     args = [file_path, line_number, "-s", substring]
     run_test(args, expected)
@@ -62,17 +91,6 @@ def assertResult(result, expected):
 
 main()
 
-        #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-        #line_number = "125"
-        #substring = "\"allowEmptyOptions=true\""
-
-        #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-        #line_number = "21"
-        #substring = "AssetEntry"
-
-        #file_name = "portal-impl/src/com/liferay/portal/util/PortalImpl.java"
-        #line_number = "317"
-        #substring = "class Portal"
 
         # to run this test, run process with different cwd
         #file_name = "src/true-blame.py"
