@@ -4,6 +4,7 @@ import subprocess
 import sys
 
 dir_path = os.getcwd()
+ignore_case = False
 reverse = False
 reverse_end_point = "HEAD"
 quiet = False
@@ -214,7 +215,7 @@ def parse_diffs(input_params, sorted_diffs, renames):
                     if line[0] is diff_char:
                         diff_lines += 1
 
-                        if line.find(substring) > -1:
+                        if (line.find(substring) > -1) or (ignore_case and re.search(substring, line, re.IGNORECASE)):
                             if not quiet:
                                 print("Traced to: " + blame_hash, flush=True)
                             line_number = int(base_line_number) + diff_lines
@@ -287,6 +288,7 @@ def recursive_blame(file_name, line_number, substring, head):
 
 
 def main():
+    global ignore_case
     global quiet
     global reverse
     global reverse_end_point
@@ -345,6 +347,9 @@ def main():
 
             if x == "-gitk":
                 gitk = True
+
+            if x == "-ic" or x == "-ignore-case":
+                ignore_case = True
 
     try:
         file_name = file_name.strip()
