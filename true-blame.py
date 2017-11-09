@@ -44,6 +44,26 @@ def open_gitk(commit_hash):
     run_process(False, "gitk", commit_hash, [])
 
 
+def parse_file_rename(diff):
+	rename_from = None
+	rename_to = None
+
+	for line in diff.splitlines():
+		if line.startswith("rename from "):
+			rename_from = line.replace("rename from ", "")
+
+		if line.startswith("rename to "):
+			rename_to = line.replace("rename to ", "")
+
+			if rename_from is not None:
+				break
+
+	if rename_from is None or rename_to is None:
+		return None
+
+	return {rename_from : rename_to}
+
+
 def run_process(output, program, cmd, *params):
     if not quiet:
         print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]), flush=True)
@@ -99,6 +119,21 @@ def get_file_diffs(git_log):
     return file_diffs
 
 
+def get_file_renames(git_diff_result):
+	renames_map = { }
+
+	for line in git_diff_result.splitlines():
+		if line.startswith("rename from "):
+			rename_from = line.replace("rename from ", "")
+
+		if line.startswith("rename to "):
+			rename_to = line.replace("rename to ", "")
+
+			renames_map[rename_from] = rename_to
+
+	return renames_map
+
+
 def get_result_info(blame, hash):
 	blame_lines = blame.splitlines()
 	log_info_lines = git_log(hash).splitlines()
@@ -146,8 +181,12 @@ def get_blame_parent(blame_hash, blame):
     return parent_hash
 
 
-def sort_file_diffs(diffs, file_name):
+def sort_file_diffs(diffs, file_name, renames):
     sorted_diffs = {}
+
+    if reverse and file_name in renames:
+    	file_name = renames[file_name]
+
     sorted_diffs[file_name] = "temp"
     simplified_file_name = file_name.split("/")[-1]
 
@@ -167,7 +206,7 @@ def sort_file_diffs(diffs, file_name):
     return sorted_diffs
 
 
-def parse_diffs(input_params, sorted_diffs):
+def parse_diffs(input_params, sorted_diffs, renames):
     return_params = {}
     blame_hash = input_params['blame_hash']
     substring = input_params['substring']
@@ -177,8 +216,8 @@ def parse_diffs(input_params, sorted_diffs):
     else:
         relevant_char = "-"
 
-    for diff_file_name, content_lines in sorted_diffs.items():
-        for content in content_lines:
+    for diff_file_name, diff in sorted_diffs.items():
+        for content in diff:
             base_line_number = -1
             content_lines = content.split("\n")
 
@@ -210,7 +249,11 @@ def parse_diffs(input_params, sorted_diffs):
                             else:
                                 return_params['head'] = blame_hash + "^"
 
-                            return_params['file_name'] = diff_file_name
+                            if reverse and diff_file_name in renames:
+                                return_params['file_name'] = renames[diff_file_name]
+                            else:
+                                return_params['file_name'] = diff_file_name
+
                             return_params['line_number'] = str(line_number)
                             return_params['blaming'] = True
                             return return_params
@@ -251,11 +294,13 @@ def recursive_blame(file_name, line_number, substring, head):
         git_diff_result = git_diff(blame_hash, parent_hash)
         file_diffs_map = get_file_diffs(git_diff_result)
 
-        sorted_diffs = sort_file_diffs(file_diffs_map, file_name)
+        renames_map = get_file_renames(git_diff_result)
+
+        sorted_diffs = sort_file_diffs(file_diffs_map, file_name, renames_map)
 
         input_params = {'blame_hash': blame_hash,
                         'substring': substring}
-        output_params = parse_diffs(input_params, sorted_diffs)
+        output_params = parse_diffs(input_params, sorted_diffs, renames_map)
 
         blaming = output_params['blaming']
         if blaming:
@@ -333,8 +378,18 @@ def main():
         #line_number = "149"
         #substring = "removal_lines"
         #reverse = True
-        #head = b00428aa730944f2b08109d00376b5c9422943ca
-        #reverse_end_point = f5c6a52bacebf81b81dace9e6491b29a8cf693e1
+        #head = "b00428aa730944f2b08109d00376b5c9422943ca"
+        #reverse_end_point = "f5c6a52bacebf81b81dace9e6491b29a8cf693e1"
+
+        #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
+        #line_number = "15"
+        #substring = "com.liferay.dynamic.data.mapping.type.text"
+
+        #file_name = "modules/apps/dynamic-data-mapping/dynamic-data-mapping-type-text/src/com/liferay/dynamic/data/mapping/type/text/TextDDMFormFieldTypeSettings.java"
+        #line_number = "15"
+        #substring = "com.liferay.dynamic.data.mapping.type.text"
+        #reverse = True
+        #head = "302eae90a0f13d0ab330f73b8aef8ea7a0dbcaf4"
     else:
         file_name = sys.argv[1]
         line_number = sys.argv[2]
