@@ -138,7 +138,8 @@ def get_blame_parent(blame_hash, blame):
     if reverse:
         parent_hash = git_rev_parse(blame_hash)
     else:
-        regex_string = "((previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
+        regex_string = "((\n)(previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
+        # print(blame)
         other = re.compile(regex_string).split(blame)[1]
         parent_hash = other.split()[1]
 
@@ -232,7 +233,6 @@ def recursive_blame(file_name, line_number, substring, head):
 
             if reverse:
                 parent_hash = blame_hash
-
                 ancestry = git_rev_list_with_ancestry_path(blame_hash).splitlines()
 
                 try:
@@ -243,7 +243,7 @@ def recursive_blame(file_name, line_number, substring, head):
                 try:
                     parent_hash = get_blame_parent(blame_hash, current_blame)
                 except:
-                    return { blame_hash : get_resut_info(current_blame, blame_hash) }
+                    return { blame_hash : get_result_info(current_blame, blame_hash) }
         except:
             print("ERROR: Invalid Blame Commit.")
             sys.exit(0)
@@ -282,15 +282,15 @@ def main():
         print("\ttb path/to/file/filename.extension line_number <arguments>")
 
         print("\n\nArguments:")
-        print("\n\t-q: only print result")
-        print("\t\tFalse by default")
-
         print("\n\t-s <string>: specify a specific substring to search on")
         print("\t\t<string> entire line without leading or trailing whitespace by default")
 
         print("\n\t-r <start-commit> <end-commit>: search in reverse")
         print("\t\t<start-commit> HEAD by default")
         print("\t\t<end-commit> HEAD by default")
+
+        print("\n\t-q: only print result")
+        print("\t\tFalse by default")
 
         print("\n\t-gitk: open gitk on result hash")
         print("\t\tFalse by default")
