@@ -26,13 +26,13 @@ def git_diff(blame_hash, parent_hash):
 
 
 def git_log(commit):
-	args = ["-1", commit]
-	return run_process(True, "git", "log", args)
+    args = ["-1", commit]
+    return run_process(True, "git", "log", args)
 
 
 def git_rev_parse(hash):
     args = [hash + "^"]
-    return run_process(True, "git", "rev-parse", args).replace("\n","")
+    return run_process(True, "git", "rev-parse", args).replace("\n", "")
 
 
 def git_rev_list_with_ancestry_path(commit_hash):
@@ -46,7 +46,8 @@ def open_gitk(commit_hash):
 
 def run_process(output, program, cmd, *params):
     if not quiet:
-        print("\t" + program + " " + cmd + " " + ' '.join(str(x) for x in params[0]), flush=True)
+        print("\t" + program + " " + cmd + " " +
+              ' '.join(str(x) for x in params[0]), flush=True)
 
     args = [program] + [cmd] + params[0]
     process = subprocess.Popen(args, stdout=subprocess.PIPE, cwd=dir_path)
@@ -70,14 +71,9 @@ def get_line(file_name, line_number):
 
 def get_file_diffs(git_log):
     file_diffs = {}
-    # Refactor later (split)
     file_separator_regex = "(^|\n)diff --git a\/"
 
-    # ^(diff --git a\/)
-    # (["\n"]+(diff --git a\/))
-
     split_log = re.compile(file_separator_regex).split(git_log)
-    #split_log = git_log.split("diff --git a/")
     split_log.pop(0)
 
     split_log = [x for x in split_log if x.strip()]
@@ -100,53 +96,53 @@ def get_file_diffs(git_log):
 
 
 def get_file_renames(git_diff_result):
-	renames_map = { }
+    renames_map = {}
 
-	for line in git_diff_result.splitlines():
-		if line.startswith("rename from "):
-			rename_from = line.replace("rename from ", "")
+    for line in git_diff_result.splitlines():
+        if line.startswith("rename from "):
+            rename_from = line.replace("rename from ", "")
 
-		if line.startswith("rename to "):
-			rename_to = line.replace("rename to ", "")
+        if line.startswith("rename to "):
+            rename_to = line.replace("rename to ", "")
 
-			renames_map[rename_from] = rename_to
+            renames_map[rename_from] = rename_to
 
-	return renames_map
+    return renames_map
 
 
 def get_result_info(blame, hash):
-	blame_lines = blame.splitlines()
-	log_info_lines = git_log(hash).splitlines()
+    blame_lines = blame.splitlines()
+    log_info_lines = git_log(hash).splitlines()
 
-	blame_line_info = blame_lines[0].split()
+    blame_line_info = blame_lines[0].split()
 
-	new_info_set = "Commit: " + hash
+    new_info_set = "Commit: " + hash
 
-	for line in log_info_lines:
-		if line.startswith("Date:") or line.startswith("Author:"):
-			new_info_set += "\n" + line
+    for line in log_info_lines:
+        if line.startswith("Date:") or line.startswith("Author:"):
+            new_info_set += "\n" + line
 
-	new_info_set += "\nSummary: "
+    new_info_set += "\nSummary: "
 
-	for i in range(4, len(log_info_lines)):
-		new_info_set += log_info_lines[i].strip() + "\n"
+    for i in range(4, len(log_info_lines)):
+        new_info_set += log_info_lines[i].strip() + "\n"
 
-	for i in range(0, len(blame_lines)):
-		if blame_lines[i].startswith("filename"):
-			if reverse:
-				new_info_set += "\nPreviously found in file:"
-			else:
-				new_info_set += "\nIntroduced in file:"
+    for i in range(0, len(blame_lines)):
+        if blame_lines[i].startswith("filename"):
+            if reverse:
+                new_info_set += "\nPreviously found in file:"
+            else:
+                new_info_set += "\nIntroduced in file:"
 
-			new_info_set += blame_lines[i][blame_lines[i].find(" "):]
+            new_info_set += blame_lines[i][blame_lines[i].find(" "):]
 
-			break
+            break
 
-	new_info_set += "\nOn line: " + blame_line_info[1] + "\n\n"
+    new_info_set += "\nOn line: " + blame_line_info[1] + "\n\n"
 
-	new_info_set += blame_lines[-1]
+    new_info_set += blame_lines[-1]
 
-	return new_info_set
+    return new_info_set
 
 
 def get_blame_parent(blame_hash, blame):
@@ -154,7 +150,6 @@ def get_blame_parent(blame_hash, blame):
         parent_hash = git_rev_parse(blame_hash)
     else:
         regex_string = "((\n)(previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
-        # print(blame)
         other = re.compile(regex_string).split(blame)[1]
         parent_hash = other.split()[1]
 
@@ -165,7 +160,7 @@ def sort_file_diffs(diffs, file_name, renames):
     sorted_diffs = {}
 
     if reverse and file_name in renames:
-    	file_name = renames[file_name]
+        file_name = renames[file_name]
 
     sorted_diffs[file_name] = "temp"
     simplified_file_name = file_name.split("/")[-1]
@@ -192,9 +187,9 @@ def parse_diffs(input_params, sorted_diffs, renames):
     substring = input_params['substring']
 
     if reverse:
-        relevant_char = "+"
+        diff_char = "+"
     else:
-        relevant_char = "-"
+        diff_char = "-"
 
     for diff_file_name, diff in sorted_diffs.items():
         for content in diff:
@@ -203,26 +198,26 @@ def parse_diffs(input_params, sorted_diffs, renames):
 
             diff_line_tokens = content_lines[0].split(" ")
             for token in diff_line_tokens:
-                if token[0] is relevant_char:
+                if token[0] is diff_char:
                     if token.find(",") > -1:
                         base_line_number = token.split(",")[0]
                     else:
                         base_line_number = token
 
-                    base_line_number = base_line_number.replace(relevant_char, "")
+                    base_line_number = base_line_number.replace(diff_char, "")
                     break
 
-            relevant_lines = -1
+            diff_lines = -1
 
             for i, line in enumerate(content_lines):
                 if line:
-                    if line[0] is relevant_char:
-                        relevant_lines += 1
+                    if line[0] is diff_char:
+                        diff_lines += 1
 
                         if line.find(substring) > -1:
                             if not quiet:
                                 print("Traced to: " + blame_hash, flush=True)
-                            line_number = int(base_line_number) + relevant_lines
+                            line_number = int(base_line_number) + diff_lines
 
                             if reverse:
                                 return_params['head'] = blame_hash
@@ -248,7 +243,7 @@ def recursive_blame(file_name, line_number, substring, head):
     while blaming:
         if not quiet:
             print("==============", flush=True)
-            print("Checking: " + head.replace("^",""), flush=True)
+            print("Checking: " + head.replace("^", ""), flush=True)
         current_blame = git_blame(file_name, line_number, head)
 
         try:
@@ -261,12 +256,12 @@ def recursive_blame(file_name, line_number, substring, head):
                 try:
                     blame_hash = ancestry[-1]
                 except:
-                    return { blame_hash : get_result_info(current_blame, blame_hash) }
+                    return {blame_hash: get_result_info(current_blame, blame_hash)}
             else:
                 try:
                     parent_hash = get_blame_parent(blame_hash, current_blame)
                 except:
-                    return { blame_hash : get_result_info(current_blame, blame_hash) }
+                    return {blame_hash: get_result_info(current_blame, blame_hash)}
         except:
             print("ERROR: Invalid Blame Commit.")
             sys.exit(0)
@@ -288,9 +283,7 @@ def recursive_blame(file_name, line_number, substring, head):
             file_name = output_params['file_name']
             line_number = output_params['line_number']
 
-    result_info = get_result_info(current_blame, blame_hash)
-
-    return { blame_hash : result_info }
+    return {blame_hash: get_result_info(current_blame, blame_hash)}
 
 
 def main():
@@ -324,52 +317,12 @@ def main():
     elif (len(sys.argv) < 3):
         print("Filename: ", end="", flush=True)
         file_name = input()
+
         print("Line Number: ", end="", flush=True)
         line_number = input()
+
         print("String: ", flush=True)
         substring = input()
-
-        # FOR TESTING
-        #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-        #line_number = "125"
-        #substring = "\"allowEmptyOptions=true\""
-
-        # file_name = "portal-kernel/src/com/liferay/portal/kernel/util/StringUtil.java"
-        # line_number = "209"
-        # substring = "sb.append(StringPool.SPACE)"
-        # EXPECT : b2590ecfa4b8d6cbefdb65c5cc7949a23e33155b
-
-        #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-        #line_number = "157"
-        #substring = "rootPortletId"
-        # quiet = True
-        # gitk = True
-        # EXPECT : 23b974bc9510a06d2a359301c1d12fab4aa61cc5
-
-        #file_name = "modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java"
-        #line_number = "21"
-        #substring = "AssetEntry"
-
-        #file_name = "portal-impl/src/com/liferay/portal/util/PortalImpl.java"
-        #line_number = "317"
-        #substring = "class Portal"
-
-        #file_name = "src/true-blame.py"
-        #line_number = "149"
-        #substring = "removal_lines"
-        #reverse = True
-        #head = "b00428aa730944f2b08109d00376b5c9422943ca"
-        #reverse_end_point = "f5c6a52bacebf81b81dace9e6491b29a8cf693e1"
-
-        #file_name = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-        #line_number = "15"
-        #substring = "com.liferay.dynamic.data.mapping.type.text"
-
-        #file_name = "modules/apps/dynamic-data-mapping/dynamic-data-mapping-type-text/src/com/liferay/dynamic/data/mapping/type/text/TextDDMFormFieldTypeSettings.java"
-        #line_number = "15"
-        #substring = "com.liferay.dynamic.data.mapping.type.text"
-        #reverse = True
-        #head = "302eae90a0f13d0ab330f73b8aef8ea7a0dbcaf4"
     else:
         file_name = sys.argv[1]
         line_number = sys.argv[2]
@@ -378,12 +331,9 @@ def main():
             if x == "-s" and len(sys.argv) > (i + 1):
                 substring = sys.argv[i + 1]
 
-            if x == "-gitk":
-                gitk = True
-
             if x == "-r" or x == "-reverse":
                 reverse = True
-    
+
                 if len(sys.argv) > (i + 1) and sys.argv[i + 1][0] is not "-":
                     head = sys.argv[i + 1]
 
@@ -393,6 +343,9 @@ def main():
             if x == "-q" or x == "-quiet":
                 quiet = True
 
+            if x == "-gitk":
+                gitk = True
+
     try:
         file_name = file_name.strip()
         line_number = line_number.strip()
@@ -400,10 +353,10 @@ def main():
         if file_name.find("\\") > -1:
             file_name = file_name.replace("\\", "/")
 
-        if not re.compile('^[^\s\"\'\.]+(\.)[a-z]{1,6}$').match(file_name):
+        if not re.compile("^[^\s\"\'\.]+(\.)[a-z]{1,6}$").match(file_name):
             print("INFO: " + file_name, flush=True)
 
-        if not re.compile(r'^[0-9]+$').match(line_number):
+        if not re.compile(r"^[0-9]+$").match(line_number):
             raise Exception()
     except:
         print("Filename: " + file_name)
@@ -428,15 +381,15 @@ def main():
     print("==============")
     print("True Blame: \n\n" + blame[blame_hash])
 
-    if gitk:
-        open_gitk(blame_hash)
-
     if reverse:
         quiet = True
-
         reverse_end_point_hash = git_log(reverse_end_point).split()[1]
 
         if reverse_end_point_hash == blame_hash:
-            print("\nThis commit is the last in the specified range. The line may not have been removed!")
+            print("\nThis commit is the last in the specified range. \
+                The line may not have been removed!")
+
+    if gitk:
+        open_gitk(blame_hash)
 
 main()
