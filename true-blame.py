@@ -307,7 +307,7 @@ def main():
         print("\t\t<start-commit> HEAD by default")
         print("\t\t<end-commit> HEAD by default")
 
-        print("\n\t-q: only print result")
+        print("\n\t-q: only print the result")
         print("\t\tFalse by default")
 
         print("\n\t-gitk: open gitk on result hash")

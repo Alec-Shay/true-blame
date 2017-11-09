@@ -17,7 +17,7 @@
    - *start-commit* : HEAD by default
    - *end-commit* : HEAD by default
 
-- `-q` : only print result
+- `-q` : only print the result
    - False by default
 
 - `-gitk` : open gitk on result hash
@@ -99,4 +99,5 @@ String: rootPortletId
 ```
 
 To run with additional arguments, pass in parameters when running the alias.
+
 `tb modules/apps/web-experience/asset/asset-publisher-web/src/main/java/com/liferay/asset/publisher/web/util/AssetPublisherUtil.java 157 -s "rootPortletId" -q -gitk`
