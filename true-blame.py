@@ -296,7 +296,7 @@ def main():
     head = "HEAD"
     gitk = False
     substring = None
-    
+
     if (len(sys.argv) < 2):
         print("Filename: ", end="", flush=True)
         file_name = input()

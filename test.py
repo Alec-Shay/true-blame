@@ -4,11 +4,9 @@ import subprocess
 import sys
 
 #PATH_TO_TRUE_BLAME_PROJECT
-# run_path = "C:\\Users\\liferay\\Desktop\\me\\true-blame"
 run_path = os.environ['TB_PATH']
 
 #PATH_TO_LIFERAY_REPO
-# repo_path = "C:\\Users\\liferay\\Desktop\\Repos\\liferay-portal"
 repo_path = os.environ['LIFERAY_PATH']
 
 def main():
@@ -39,7 +37,7 @@ def main():
 
     args = [file_path, line_number]
     run_test(args, expected, True)
-    
+
     expected = "ERROR: Invalid Blame Commit."
     file_path = "build.xml"
     line_number = "9999999"
@@ -76,7 +74,7 @@ def main():
 
     expected = "302eae90a0f13d0ab330f73b8aef8ea7a0dbcaf4"
     file_path = "modules/apps/forms-and-workflow/dynamic-data-mapping/dynamic-data-mapping-type-text/src/main/java/com/liferay/dynamic/data/mapping/type/text/internal/TextDDMFormFieldTypeSettings.java"
-    line_number = "15" 
+    line_number = "15"
     substring = "com.liferay.dynamic.data.mapping.type.text"
 
     args = [file_path, line_number, "-s", substring]
@@ -119,7 +117,7 @@ def run_test(args, expected, failure):
     if failure:
         result = process.communicate()[0].decode("UTF-8", "replace")
         assertFail(result, expected, args)
-    else: 
+    else:
         result = process.communicate()[0].decode("UTF-8", "replace")
         assertResult(result, expected)
 
@@ -136,15 +134,3 @@ def assertResult(result, expected):
             ".\n\n" + result
 
 main()
-
-        # Add failure test for Multiple Lines Selected
-        
-        # Add functional tests with -r, -q, -help
-
-        # to run this test, run process with different cwd
-        #file_name = "src/true-blame.py"
-        #line_number = "149"
-        #substring = "removal_lines"
-        #reverse = True
-        #head = b00428aa730944f2b08109d00376b5c9422943ca
-        #reverse_end_point = f5c6a52bacebf81b81dace9e6491b29a8cf693e1
