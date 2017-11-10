@@ -31,8 +31,7 @@
 ## Installation
 1. Install Python 3
 
-2. Clone this repository : 
-`git@github.com/alec-shay/true-blame.git`
+2. Download `true-blame.py`
 
 <a name="intellijsetup" />
 
@@ -82,7 +81,11 @@ The following example uses prompt to pass in a substring of text (with escaped q
 
 ### Setup
 
-Add this section to .bash_aliases (or the equivalent on whichever shell you're using) which calls the script.  Ensure /path/to/clone/location is modified to be wherever you've cloned the repository.
+1. Download `tb` to the same directory as `true-blame.py`.
+
+2. Add this section to .bash_aliases (or the equivalent on any shell) which calls the script.
+ 
+3. Modify `/path/to/clone/location` to the path where these files are saved.
 
 ```bash
 TB_PATH=/path/to/clone/location
