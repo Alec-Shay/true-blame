@@ -39,7 +39,7 @@
 
 ### Setup
 
-1. After cloning the `true-blame` repository, in IntelliJ, navigate to `File` -> `Settings`.
+1. After downloading `true-blame.py`, in IntelliJ, navigate to `File` -> `Settings`.
 2. Add a new external tool under `Tools` -> `External Tools`.
 
 ![External Tools screenshot](https://github.com/Alec-Shay/true-blame/blob/master/img/IntelliJExternalToolSetup.png)
