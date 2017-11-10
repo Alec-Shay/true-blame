@@ -5,9 +5,9 @@ import sys
 
 dir_path = os.getcwd()
 ignore_case = False
+quiet = False
 reverse = False
 reverse_end_point = "HEAD"
-quiet = False
 
 
 def git_blame(file_name, line_number, head):
@@ -296,8 +296,22 @@ def main():
     head = "HEAD"
     gitk = False
     substring = None
+    
+    if (len(sys.argv) < 2):
+        print("Filename: ", end="", flush=True)
+        file_name = input()
 
-    if "--help" in sys.argv or "-help" in sys.argv:
+        print("Line Number: ", end="", flush=True)
+        line_number = input()
+
+        print("String: ", flush=True)
+        substring = input()
+    elif (len(sys.argv) < 3):
+        print("Usage: ")
+        print("\ttb path/to/file/filename.extension line_number <arguments>")
+
+        sys.exit(0)
+    elif "-help" in sys.argv or "--help" in sys.argv:
         print("Usage: ")
         print("\ttb path/to/file/filename.extension line_number <arguments>")
 
@@ -319,15 +333,6 @@ def main():
         print("\t\tFalse by default")
 
         sys.exit(0)
-    elif (len(sys.argv) < 3):
-        print("Filename: ", end="", flush=True)
-        file_name = input()
-
-        print("Line Number: ", end="", flush=True)
-        line_number = input()
-
-        print("String: ", flush=True)
-        substring = input()
     else:
         file_name = sys.argv[1]
         line_number = sys.argv[2]
@@ -345,14 +350,14 @@ def main():
                 if len(sys.argv) > (i + 2) and sys.argv[i + 2][0] is not "-":
                     reverse_end_point = sys.argv[i + 2]
 
+            if x == "-ic" or x == "-ignore-case":
+                ignore_case = True
+
             if x == "-q" or x == "-quiet":
                 quiet = True
 
             if x == "-gitk":
                 gitk = True
-
-            if x == "-ic" or x == "-ignore-case":
-                ignore_case = True
 
     try:
         file_name = file_name.strip()
@@ -364,14 +369,12 @@ def main():
         if not re.compile("^[^\s\"\'\.]+(\.)[a-z]{1,6}$").match(file_name):
             print("INFO: " + file_name, flush=True)
 
-        if not re.compile(r"^[0-9]+$").match(line_number):
+        if not re.compile("^[0-9]+$").match(line_number):
             raise Exception()
     except:
         print("Filename: " + file_name)
-        print("Line Number: " + line_number)
-
+        print("Line Number: " + line_number + "\n")
         print("ERROR: Invalid Parameters.")
-        print("Exiting.")
 
         sys.exit(0)
 
@@ -379,7 +382,6 @@ def main():
         substring = get_line(file_name, line_number).strip()
     elif substring.find("\n") > -1:
         print("ERROR: Multiple Lines Selected.")
-        print("Exiting.")
 
         sys.exit(0)
 
