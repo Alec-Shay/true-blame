@@ -297,21 +297,7 @@ def main():
     gitk = False
     substring = None
 
-    if (len(sys.argv) < 2):
-        print("Filename: ", end="", flush=True)
-        file_name = input()
-
-        print("Line Number: ", end="", flush=True)
-        line_number = input()
-
-        print("String: ", flush=True)
-        substring = input()
-    elif (len(sys.argv) < 3):
-        print("Usage: ")
-        print("\ttb path/to/file/filename.extension line_number <arguments>")
-
-        sys.exit(0)
-    elif "-help" in sys.argv or "--help" in sys.argv:
+    if "-help" in sys.argv or "--help" in sys.argv:
         print("Usage: ")
         print("\ttb path/to/file/filename.extension line_number <arguments>")
 
@@ -331,6 +317,20 @@ def main():
 
         print("\n\t-gitk: open gitk on result hash")
         print("\t\tFalse by default")
+
+        sys.exit(0)
+    elif (len(sys.argv) < 2):
+        print("Filename: ", end="", flush=True)
+        file_name = input()
+
+        print("Line Number: ", end="", flush=True)
+        line_number = input()
+
+        print("String: ", flush=True)
+        substring = input()
+    elif (len(sys.argv) < 3):
+        print("Usage: ")
+        print("\ttb path/to/file/filename.extension line_number <arguments>")
 
         sys.exit(0)
     else:
