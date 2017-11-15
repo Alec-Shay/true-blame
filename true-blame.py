@@ -389,7 +389,10 @@ def main():
     blame_hash = list(blame.keys())[0]
 
     print("==============")
-    print("True Blame: \n\n" + blame[blame_hash])
+
+    safe_output = blame[blame_hash].encode(sys.stdout.encoding, errors='backslashreplace').decode(sys.stdout.encoding)
+
+    print("True Blame: \n\n" + safe_output)
 
     if reverse:
         quiet = True
