@@ -43,6 +43,20 @@ def git_rev_list_with_ancestry_path(commit_hash):
     return run_process(True, "git", "rev-list", args)
 
 
+def github_link(hash):
+	args = ["get-url", "upstream"]
+
+	try:
+		output = run_process(True, "git", "remote", args).strip()
+
+		if output.find("git@github.com") != 0:
+			return hash
+	except:
+		return hash
+
+	return 'https://github.com/%s/commit/%s' % (output[len("git@github.com")+1:-4], hash)
+
+
 def open_gitk(commit_hash):
     run_process(False, "gitk", commit_hash, [])
 
@@ -119,7 +133,7 @@ def get_result_info(blame, hash):
 
     blame_line_info = blame_lines[0].split()
 
-    new_info_set = "Commit: " + hash
+    new_info_set = "Commit: %s" % github_link(hash)
 
     for line in log_info_lines:
         if line.startswith("Date:") or line.startswith("Author:"):
