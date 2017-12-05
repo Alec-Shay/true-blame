@@ -166,9 +166,19 @@ def get_blame_parent(blame_hash, blame):
     if reverse:
         parent_hash = git_rev_parse(blame_hash)
     else:
-        regex_string = "((\n)(previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
-        other = re.compile(regex_string).split(blame)[1]
-        parent_hash = other.split()[1]
+        try:
+            regex_string = "((\n)(previous)((.)*)(\.)([a-zA-Z]+)((\s)*)(filename))"
+            other = re.compile(regex_string).split(blame)[1]
+            parent_hash = other.split()[1]
+        except:
+            parent_log = git_log(blame_hash + "^1")
+            regex_string = "((commit) ((.)*))"
+            match = re.compile(regex_string).match(parent_log)
+
+            if match:
+                parent_hash = match.group(0).split(' ')[1]
+            else:
+                raise NoParentException()
 
     return parent_hash
 
